@@ -33,4 +33,24 @@ main(void)
 		)
 	);
 	printf("%i\n", maxargs(prog));
+	A_stm prog1 = A_PrintStm(
+		A_PairExpList(
+			A_EseqExp(
+				A_PrintStm(
+					A_PairExpList(
+						A_NumExp(1),
+						A_PairExpList(
+							A_NumExp(2),
+							A_LastExpList(
+								A_NumExp(3)
+							)
+						)
+					)
+				),
+				A_NumExp(2137)
+			),
+			A_LastExpList(A_NumExp(69))
+		)
+	);
+	printf("%i\n", maxargs(prog1));
 }

@@ -12,10 +12,10 @@ max(const int a, const int b)
 int
 max3(const int a, const int b, const int c)
 {
-	if (a > b) {
+	if (a > b || c > b) {
 		return (a > c) ? a : c;
 	}
-	return c;
+	return b;
 }
 
 int
