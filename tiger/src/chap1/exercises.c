@@ -1,5 +1,6 @@
 #include "exercises.h"
 #include "tokens.h"
+#include "linked_list.h"
 
 #include <stdio.h>
 
@@ -84,4 +85,22 @@ maxargs(A_stm stm)
 		return _maxargs_expl(stm->u.print.exps);
 	}
 	return 0;
+}
+
+Table_
+interpStm(A_stm s, Table_ t)
+{
+	switch (s->kind) {
+	case A_compoundStm:
+	case A_assignStm:
+	case A_printStm:
+		break;
+	}
+}
+
+
+void
+interpret(A_stm stmt)
+{
+
 }

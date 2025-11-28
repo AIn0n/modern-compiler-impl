@@ -5,4 +5,6 @@
 
 int maxargs(A_stm);
 
+void interpret(A_stm);
+
 #endif
