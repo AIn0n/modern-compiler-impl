@@ -13,5 +13,6 @@ struct table {
 
 Table_ Table(string, int, struct table *);
 Table_ update(Table_, string, int);
+int lookup(Table_, string);
 
 #endif
