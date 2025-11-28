@@ -12,5 +12,6 @@ struct table {
 };
 
 Table_ Table(string, int, struct table *);
+Table_ update(Table_, string, int);
 
 #endif

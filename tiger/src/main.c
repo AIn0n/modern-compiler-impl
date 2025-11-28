@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "chap1/tokens.h"
-#include "chap1/exercises.h"
+#include "chap1/exercise_1.h"
 
 int
 main(void)
