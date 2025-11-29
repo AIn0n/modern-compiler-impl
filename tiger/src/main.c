@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include "chap1/tokens.h"
 #include "chap1/exercise_1.h"
+#include "chap1/exercise_2.h"
 
 int
 main(void)
 {
+// test maxargs
 	A_stm prog = A_CompoundStm(
 		A_AssignStm(
 			"a", 
@@ -53,4 +55,10 @@ main(void)
 		)
 	);
 	printf("%i\n", maxargs(prog1));
+
+puts("====================");
+puts("= TEST INTERPRETER =");
+puts("====================");
+// test interpret
+	interpret(prog);
 }

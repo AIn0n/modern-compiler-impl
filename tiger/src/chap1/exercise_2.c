@@ -3,7 +3,7 @@
 #include "linked_list.h"
 #include "tokens.h"
 #include "table_wrappers.h"
-
+#include "exercise_2.h"
 
 // moved the logic into new function to make it more readable
 // but there is no any special need to extract it.
@@ -81,5 +81,6 @@ interpStm(A_stm s, Table_ t)
 void
 interpret(A_stm stmt)
 {
-
+	Table_ t = nullptr;
+	interpStm(stmt, t);
 }

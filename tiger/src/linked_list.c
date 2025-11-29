@@ -21,6 +21,10 @@ update(Table_ src, string id, int val)
 int
 lookup(Table_ t, string key)
 {
+	if (t == nullptr) {
+		exit(1);
+	}
+
 	for (Table_ tmp = t; tmp != nullptr; tmp = tmp->tail) {
 		if (tmp->id == key) {
 			return tmp->value;
