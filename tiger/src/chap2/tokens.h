@@ -1,3 +1,5 @@
+#include "util.h"
+
 typedef union  {
 	int pos;
 	int ival;

@@ -1,4 +1,7 @@
+#pragma once
+
 #include <assert.h>
+#include <stdbool.h>
 
 typedef char *string;
 
