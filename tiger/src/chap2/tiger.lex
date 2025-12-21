@@ -5,6 +5,7 @@
 #include "errormsg.h"
 
 int charPos=1;
+int comment_nesting = 0;
 
 int yywrap(void)
 {
@@ -20,6 +21,8 @@ void adjust(void)
 }
 
 %}
+
+%x COMMENT
 
 %%
 " "	 {adjust(); continue;}
@@ -67,4 +70,20 @@ type  {adjust(); return TYPE;}
 [a-zA-Z][a-zA-Z0-9_]* {adjust(); yylval.sval=String(yytext); return ID;}
 [0-9]+	 {adjust(); yylval.ival=atoi(yytext); return INT;}
 .	 {adjust(); EM_error(EM_tokPos,"illegal token");}
+"/*" {adjust(); comment_nesting++; BEGIN(COMMENT);}
+"*/" {EM_error(EM_tokPos, "Unclosed comment");}
 
+
+<COMMENT>{
+
+    "/*" { adjust(); comment_nesting++; continue;}
+    "*/" {
+            adjust(); 
+            comment_nesting--;
+            if (!comment_nesting) {
+                BEGIN(INITIAL);
+            }
+        }
+    <<EOF>> { EM_error(EM_tokPos, "EOF during comment");}
+    . {adjust(); continue;}
+}
