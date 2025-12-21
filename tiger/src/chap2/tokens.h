@@ -4,35 +4,36 @@ typedef union  {
 	int pos;
 	int ival;
 	string sval;
-	} YYSTYPE;
+} YYSTYPE;
+
 extern YYSTYPE yylval;
 
-# define ID 257
+# define ID 257		//done
 # define STRING 258
-# define INT 259
-# define COMMA 260
+# define INT 259	//done
+# define COMMA 260	//done
 # define COLON 261
-# define SEMICOLON 262
-# define LPAREN 263
-# define RPAREN 264
-# define LBRACK 265
-# define RBRACK 266
-# define LBRACE 267
-# define RBRACE 268
-# define DOT 269
-# define PLUS 270
-# define MINUS 271
-# define TIMES 272
-# define DIVIDE 273
-# define EQ 274
-# define NEQ 275
-# define LT 276
-# define LE 277
-# define GT 278
-# define GE 279
-# define AND 280
-# define OR 281
-# define ASSIGN 282
+# define SEMICOLON 262	//done
+# define LPAREN 263	//done
+# define RPAREN 264	//done
+# define LBRACK 265	//done
+# define RBRACK 266	//done
+# define LBRACE 267	//done
+# define RBRACE 268	//done
+# define DOT 269	//done
+# define PLUS 270	//done
+# define MINUS 271	//done
+# define TIMES 272	//done
+# define DIVIDE 273	//done
+# define EQ 274		//done
+# define NEQ 275	//done
+# define LT 276		//done
+# define LE 277		//done
+# define GT 278		//done
+# define GE 279		//done
+# define AND 280	//done
+# define OR 281		//done
+# define ASSIGN 282	//done
 # define ARRAY 283
 # define IF 284
 # define THEN 285
