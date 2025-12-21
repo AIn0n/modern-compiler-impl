@@ -12,7 +12,7 @@ extern YYSTYPE yylval;
 # define STRING 258
 # define INT 259	//done
 # define COMMA 260	//done
-# define COLON 261
+# define COLON 261	//done
 # define SEMICOLON 262	//done
 # define LPAREN 263	//done
 # define RPAREN 264	//done
@@ -34,20 +34,20 @@ extern YYSTYPE yylval;
 # define AND 280	//done
 # define OR 281		//done
 # define ASSIGN 282	//done
-# define ARRAY 283
-# define IF 284
-# define THEN 285
-# define ELSE 286
-# define WHILE 287
-# define FOR 288
-# define TO 289
-# define DO 290
-# define LET 291
-# define IN 292
-# define END 293
-# define OF 294
-# define BREAK 295
-# define NIL 296
-# define FUNCTION 297
-# define VAR 298
-# define TYPE 299
+# define ARRAY 283	//done
+# define IF 284		//done
+# define THEN 285	//done
+# define ELSE 286	//done
+# define WHILE 287	//done
+# define FOR 288	//done
+# define TO 289		//done
+# define DO 290		//done
+# define LET 291	//done
+# define IN 292		//done
+# define END 293	//done
+# define OF 294		//done
+# define BREAK 295	//done
+# define NIL 296	//done
+# define FUNCTION 297	//done
+# define VAR 298	//done
+# define TYPE 299	//done

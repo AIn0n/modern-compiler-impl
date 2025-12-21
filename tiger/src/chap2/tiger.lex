@@ -47,8 +47,24 @@ void adjust(void)
 ">"  {adjust(); return GT;}
 &    {adjust(); return AND;}
 "|"  {adjust(); return OR;}
-for  	 {adjust(); return FOR;}
-[0-9]+	 {adjust(); yylval.ival=atoi(yytext); return INT;}
+for  {adjust(); return FOR;}
+array {adjust(); return ARRAY;}
+if    {adjust(); return IF;}
+then  {adjust(); return THEN;}
+else  {adjust(); return ELSE;}
+while {adjust(); return WHILE;}
+to    {adjust(); return TO;}
+do    {adjust(); return DO;}
+let   {adjust(); return LET;}
+in    {adjust(); return IN;}
+end   {adjust(); return END;}
+of    {adjust(); return OF;}
+break {adjust(); return BREAK;}
+nil   {adjust(); return NIL;}
+function {adjust(); return FUNCTION;}
+var   {adjust(); return VAR;}
+type  {adjust(); return TYPE;}
 [a-zA-Z][a-zA-Z0-9_]* {adjust(); yylval.sval=String(yytext); return ID;}
+[0-9]+	 {adjust(); yylval.ival=atoi(yytext); return INT;}
 .	 {adjust(); EM_error(EM_tokPos,"illegal token");}
 
