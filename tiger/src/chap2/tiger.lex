@@ -6,6 +6,7 @@
 
 int charPos=1;
 int comment_nesting = 0;
+ST curr_str;
 
 int yywrap(void)
 {
@@ -22,7 +23,7 @@ void adjust(void)
 
 %}
 
-%x COMMENT
+%x COMMENT STRING_STATE
 
 %%
 " "	 {adjust(); continue;}
@@ -69,9 +70,14 @@ var   {adjust(); return VAR;}
 type  {adjust(); return TYPE;}
 [a-zA-Z][a-zA-Z0-9_]* {adjust(); yylval.sval=String(yytext); return ID;}
 [0-9]+	 {adjust(); yylval.ival=atoi(yytext); return INT;}
-.	 {adjust(); EM_error(EM_tokPos,"illegal token");}
 "/*" {adjust(); comment_nesting++; BEGIN(COMMENT);}
 "*/" {EM_error(EM_tokPos, "Unclosed comment");}
+\"   {
+        adjust(); 
+        curr_str = ST_init();
+        BEGIN(STRING);
+    }
+.	 {adjust(); EM_error(EM_tokPos,"illegal token");}
 
 
 <COMMENT>{
@@ -86,4 +92,40 @@ type  {adjust(); return TYPE;}
         }
     <<EOF>> { EM_error(EM_tokPos, "EOF during comment");}
     . {adjust(); continue;}
+}
+
+<STRING_STATE>{
+    . {
+        adjust();
+        curr_str = ST_append(curr_str, *yytext);
+    }
+    \\[ntr"\\] {
+        adjust();
+        switch (*(yytext + 1)) {
+        case 'n':
+            curr_str = ST_append(curr_str, '\n');
+            break;
+        case 't':
+            curr_str = ST_append(curr_str, '\t');
+            break;
+        case 'r':
+            curr_str = ST_append(curr_str, '\r');
+            break;
+        case '\"':
+        case '\\':
+            curr_str = ST_append(curr_str, *(yytext + 1));
+            break;
+        }
+    }
+    \\^[DGHIJKLM] {
+        adjust();
+        switch (*(yytext + 2)) {
+        case '@':
+            curr_str = ST_append(curr_str, '\0');
+            break;
+        case 'G':
+            curr_str = ST_append(curr_str, '\a');
+        }
+        curr_str = ST_append(curr_str, *(yytext + 2));
+    }
 }

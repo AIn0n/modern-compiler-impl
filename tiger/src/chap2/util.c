@@ -34,3 +34,28 @@ U_BoolList(bool head, U_boolList tail)
   list->tail = tail;
   return list;
 }
+
+ST
+ST_append(ST s, char c)
+{
+  if (s.size + 1 >= s.cap) {
+    s.cap *= 2;
+    string tmp = realloc(s.str, sizeof(s.cap));
+    if (tmp == NULL) {
+      exit(1);
+    }
+  }
+  s.str[s.size++] = c;
+  s.str[s.size] = '\0';
+  return s;
+}
+
+ST
+ST_init(void)
+{
+  return (ST) {
+    .cap = 0,
+    .size = 0,
+    .str = NULL
+  };
+}
