@@ -27,6 +27,7 @@ void adjust(void)
 
 %%
 " "	 {adjust(); continue;}
+\t   {adjust(); continue;}
 \n	 {adjust(); EM_newline(); continue;}
 ","	 {adjust(); return COMMA;}
 ;   {adjust(); return SEMICOLON;}
@@ -125,7 +126,21 @@ type  {adjust(); return TYPE;}
             break;
         case 'G':
             curr_str = ST_append(curr_str, '\a');
+            break;
+        case 'K':
+            curr_str = ST_append(curr_str, '\v');
+            break;
+        case 'L':
+            curr_str = ST_append(curr_str, '\f');
+            break;
+        case 'M':
+            curr_str = ST_append(curr_str, '\r');
+            break;
+        case '[':
+            curr_str = ST_append(curr_str, '\e');
+            break;
         }
         curr_str = ST_append(curr_str, *(yytext + 2));
     }
+    \\[\n\t ]\\ { adjust(); continue; }
 }
