@@ -40,22 +40,25 @@ ST_append(ST s, char c)
 {
   if (s.size + 1 >= s.cap) {
     s.cap *= 2;
-    string tmp = realloc(s.str, sizeof(s.cap));
+    string tmp = realloc(s.str, s.cap);
     if (tmp == NULL) {
       exit(1);
     }
+    s.str = tmp;
   }
-  s.str[s.size++] = c;
-  s.str[s.size] = '\0';
+  s.str[s.size] = c;
+  s.str[++s.size] = '\0';
   return s;
 }
 
 ST
 ST_init(void)
 {
+  string tmp = checked_malloc(sizeof(*tmp));
+  tmp[0] = '\0';
   return (ST) {
-    .cap = 0,
+    .cap = 1,
     .size = 0,
-    .str = NULL
+    .str = tmp
   };
 }

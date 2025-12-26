@@ -1,5 +1,6 @@
 %{
 #include <string.h>
+#include <stdio.h>
 #include "util.h"
 #include "tokens.h"
 #include "errormsg.h"
@@ -76,7 +77,7 @@ type  {adjust(); return TYPE;}
 \"   {
         adjust(); 
         curr_str = ST_init();
-        BEGIN(STRING);
+        BEGIN(STRING_STATE);
     }
 .	 {adjust(); EM_error(EM_tokPos,"illegal token");}
 
@@ -96,13 +97,20 @@ type  {adjust(); return TYPE;}
 }
 
 <STRING_STATE>{
+    \" {
+        adjust(); 
+        curr_str = ST_append(curr_str, '\0');
+        yylval.sval = curr_str.str;
+        BEGIN(INITIAL);
+        return STRING;
+    }
     . {
         adjust();
-        curr_str = ST_append(curr_str, *yytext);
+        curr_str = ST_append(curr_str, yytext[0]);   
     }
     \\[ntr"\\] {
         adjust();
-        switch (*(yytext + 1)) {
+        switch (yytext[1]) {
         case 'n':
             curr_str = ST_append(curr_str, '\n');
             break;
@@ -114,13 +122,13 @@ type  {adjust(); return TYPE;}
             break;
         case '\"':
         case '\\':
-            curr_str = ST_append(curr_str, *(yytext + 1));
+            curr_str = ST_append(curr_str, yytext[1]);
             break;
         }
     }
     \\^[DGHIJKLM] {
         adjust();
-        switch (*(yytext + 2)) {
+        switch (yytext[2]) {
         case '@':
             curr_str = ST_append(curr_str, '\0');
             break;
@@ -140,7 +148,6 @@ type  {adjust(); return TYPE;}
             curr_str = ST_append(curr_str, '\e');
             break;
         }
-        curr_str = ST_append(curr_str, *(yytext + 2));
     }
     \\[\n\t ]\\ { adjust(); continue; }
 }
