@@ -45,3 +45,18 @@ re.search("")
 #            |           |
 #            +-----------+
 
+
+# exercise 2.3 a
+
+# non accepting
+# 0110 6
+
+# accepting
+# 0111 7
+# 1111 15
+# 0011 3
+# 0000 0
+# 1000 8
+# 0100 4
+
+# probably numbers different than 6
