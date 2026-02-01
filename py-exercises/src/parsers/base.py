@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
-from typing import MutableMapping
+from typing import MutableMapping, Iterable
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,8 +17,9 @@ class BaseParser:
     def __init__(self, styling: ParserPrintStyler = None) -> None:
         if styling is None:
             styling = ParserPrintStyler()
-        self.rules = defaultdict(list)
+        self.rules = []
         self.styling = styling
+
         self.nullables = set()
         self.first: MutableMapping[str, set[str]] = defaultdict(set)
         self.follow: MutableMapping[str, set[str]] = defaultdict(set)
@@ -26,19 +27,21 @@ class BaseParser:
     def add_rule(self, rule: str) -> None:
         lhs, rhs = rule.split("->")
         rhs_list = rhs.strip().split()
-        self.rules[lhs.strip()].append(rhs_list)
+        self.rules.append(tuple([lhs.strip(), rhs_list]))
+
+    def add_rules(self, *rules) -> None:
+        for rule in rules:
+            self.add_rule(rule)
 
     def _rule_to_str(self, rules: list[str]) -> str:
         return " ".join(rules) if len(rules) else self.styling.epsilon
 
     def get_all_nonterminals(self) -> set[str]:
         # just get all right hand side symbols
-        return set(self.rules.keys())
+        return set([lhs for lhs, _ in self.rules])
 
     def get_all_terminals(self) -> set[str]:
-        all_rhs_symbols = set(
-            chain.from_iterable([el for rule in self.rules.values() for el in rule])
-        )
+        all_rhs_symbols = set(chain.from_iterable([rhs for _, rhs in self.rules]))
         # everything from the rules, except right hands side
         return all_rhs_symbols - self.get_all_nonterminals()
 
@@ -47,39 +50,48 @@ class BaseParser:
             return True
         return all(map(lambda x: x in self.nullables, seq))
 
-    def compute_first_follow_nullable(self) -> None:
+    def compute_first_follow_nullable(self, one_iteration: bool = False) -> None:
         self.nullables = set()
-        self.first = {z: set([z]) for z in self.get_all_terminals()}
         self.follow = defaultdict(set)
+        self.first = defaultdict(set)
+
+        for terminal in self.get_all_terminals():
+            self.first[terminal] = set([terminal])
+
         changed = True
         while changed:
             changed = False
-            # TODO: change the structure of the rules in memory - rather than map do just flat list
-            for x, y in self.rules.items():
+            for x, y in self.rules:
                 k = len(y)
                 if self._is_sequence_nullable(y):
                     self.nullables.add(x)
                     changed = True
                 for i in range(k):
+                    if self._is_sequence_nullable(y[0:i]):
+                        self.first[x] = self.first[x].union(self.first[y[i]])
+                        changed = True
+                    if self._is_sequence_nullable(y[i + 1 :]):
+                        self.follow[y[i]] = self.follow[y[i]].union(self.follow[x])
+                        changed = True
                     for j in range(i + 1, k):
-                        if self._is_sequence_nullable(y[0:i]):
-                            self.first[x] = self.first[x].union(self.follow[y[i]])
-                            changed = True
-                        if self._is_sequence_nullable(y[i + 1 :]):
-                            self.follow[y[i]] = self.follow[y[i]].union(self.follow[x])
-                            changed = True
                         if self._is_sequence_nullable(y[i + 1 : j]):
                             self.follow[y[i]] = self.follow[y[i]].union(
-                                self.first(y[j])
+                                self.first[y[j]]
                             )
                             changed = True
+            if one_iteration:
+                break
 
     def __str__(self) -> str:
-        left_pad = max(map(len, self.rules.keys())) + 1
+        rules_dict = defaultdict(list)
+        for lhs, rhs in self.rules:
+            rules_dict[lhs].append(rhs)
+
+        left_pad = max(map(len, rules_dict.keys())) + 1
         offset_sym = self.styling.hor_line
         res = ""
         offset = left_pad * " "
-        for k, v in self.rules.items():
+        for k, v in rules_dict.items():
             prefix = f"{k:{offset_sym}<{left_pad}}"
             if len(v) == 1:
                 res += f"{prefix}{offset_sym * 2} {self._rule_to_str(v[0])}\n"
@@ -96,7 +108,7 @@ class BaseParser:
         return res
 
 
-if __name__ == "__main__":
+def exercise_3_5() -> None:
     p = BaseParser()
     p.add_rule("S` -> S &")
     p.add_rule("S -> ")
@@ -114,3 +126,16 @@ if __name__ == "__main__":
     print(f"All nonterminals: {p.get_all_nonterminals()}")
     print(f"All terminals: {p.get_all_terminals()}")
     p.compute_first_follow_nullable()
+
+
+if __name__ == "__main__":
+    p = BaseParser()
+    p.add_rules("Z -> d", "Z -> X Y Z", "Y -> ", "Y -> c", "X -> Y", "X -> a")
+    p.compute_first_follow_nullable(one_iteration=True)
+    non_terminals = p.get_all_nonterminals()
+    print(f"{non_terminals=}")
+    print(f"nullables = {p.nullables}")
+    interesting_first = {k: v for k, v in p.first.items() if k in non_terminals}
+    print(f"first = {interesting_first}")
+    interesting_follows = {k: v for k, v in p.follow.items() if k in non_terminals}
+    print(f"{interesting_follows=}")
