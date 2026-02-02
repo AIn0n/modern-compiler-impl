@@ -58,28 +58,25 @@ class BaseParser:
         for terminal in self.get_all_terminals():
             self.first[terminal] = set([terminal])
 
-        changed = True
-        while changed:
-            changed = False
+        while True:
+            changed = sum(map(len, [self.nullables, *self.follow.values(), *self.first.values()]))
             for x, y in self.rules:
                 k = len(y)
                 if self._is_sequence_nullable(y):
                     self.nullables.add(x)
-                    changed = True
                 for i in range(k):
                     if self._is_sequence_nullable(y[0:i]):
                         self.first[x] = self.first[x].union(self.first[y[i]])
-                        changed = True
                     if self._is_sequence_nullable(y[i + 1 :]):
                         self.follow[y[i]] = self.follow[y[i]].union(self.follow[x])
-                        changed = True
                     for j in range(i + 1, k):
                         if self._is_sequence_nullable(y[i + 1 : j]):
                             self.follow[y[i]] = self.follow[y[i]].union(
                                 self.first[y[j]]
                             )
-                            changed = True
-            if one_iteration:
+            if one_iteration or changed == (
+                sum(map(len, [self.nullables, *self.follow.values(), *self.first.values()]))
+            ):
                 break
 
     def __str__(self) -> str:
@@ -130,8 +127,15 @@ def exercise_3_5() -> None:
 
 if __name__ == "__main__":
     p = BaseParser()
-    p.add_rules("Z -> d", "Z -> X Y Z", "Y -> ", "Y -> c", "X -> Y", "X -> a")
-    p.compute_first_follow_nullable(one_iteration=True)
+    p.add_rules(
+        "Z -> d",
+        "Z -> X Y Z",
+        "Y -> ",
+        "Y -> c",
+        "X -> Y",
+        "X -> a",
+    )
+    p.compute_first_follow_nullable(one_iteration=False)
     non_terminals = p.get_all_nonterminals()
     print(f"{non_terminals=}")
     print(f"nullables = {p.nullables}")
