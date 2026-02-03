@@ -7,7 +7,11 @@ authors = [
     { name = "Szymon Górka", email = "55995692+AIn0n@users.noreply.github.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "ipykernel>=7.1.0",
+    "pytest>=9.0.2",
+    "tablib>=3.9.0",
+]
 
 [project.scripts]
 py-exercises = "py_exercises:main"

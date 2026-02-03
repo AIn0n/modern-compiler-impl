@@ -1,7 +1,8 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
-from typing import MutableMapping, Iterable
+from typing import MutableMapping
+import tablib
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +50,11 @@ class BaseParser:
         if len(seq) == 0:
             return True
         return all(map(lambda x: x in self.nullables, seq))
+    
+    def count_first_follow_nullables(self) -> int:
+        return sum(
+                map(len, [self.nullables, *self.follow.values(), *self.first.values()])
+            )
 
     def compute_first_follow_nullable(self, one_iteration: bool = False) -> None:
         self.nullables = set()
@@ -59,7 +65,7 @@ class BaseParser:
             self.first[terminal] = set([terminal])
 
         while True:
-            changed = sum(map(len, [self.nullables, *self.follow.values(), *self.first.values()]))
+            changed = self.count_first_follow_nullables()
             for x, y in self.rules:
                 k = len(y)
                 if self._is_sequence_nullable(y):
@@ -74,10 +80,20 @@ class BaseParser:
                             self.follow[y[i]] = self.follow[y[i]].union(
                                 self.first[y[j]]
                             )
-            if one_iteration or changed == (
-                sum(map(len, [self.nullables, *self.follow.values(), *self.first.values()]))
-            ):
+            if one_iteration or (changed == self.count_first_follow_nullables()):
                 break
+
+    def build_parsing_table(self):
+        terminals = enumerate(self.get_all_terminals())
+        self.table = defaultdict(lambda: defaultdict(list))
+
+        for x, y in self.rules:
+            for t in self.first[y]:
+                self.table[x][t].append((x, y))
+            if y in self.nullables:
+                for t in self.follow[x]:
+                    self.table[x][t].append((x, y))
+        print(self.table)
 
     def __str__(self) -> str:
         rules_dict = defaultdict(list)
@@ -105,27 +121,8 @@ class BaseParser:
         return res
 
 
-def exercise_3_5() -> None:
-    p = BaseParser()
-    p.add_rule("S` -> S &")
-    p.add_rule("S -> ")
-    p.add_rule("S -> X S")
-    p.add_rule(r"B -> \ begin { WORD }")
-    p.add_rule(r"E -> \ end { WORD }")
-    p.add_rule("X -> B S E")
-    p.add_rule("X -> { S }")
-    p.add_rule("X -> WORD")
-    p.add_rule("X -> begin")
-    p.add_rule("X -> end")
-    p.add_rule(r"X -> \ WORD")
-
-    print(p)
-    print(f"All nonterminals: {p.get_all_nonterminals()}")
-    print(f"All terminals: {p.get_all_terminals()}")
-    p.compute_first_follow_nullable()
-
-
 if __name__ == "__main__":
+    # Example from grammar 3.12
     p = BaseParser()
     p.add_rules(
         "Z -> d",
