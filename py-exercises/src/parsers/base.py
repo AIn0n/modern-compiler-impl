@@ -2,7 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
 from typing import MutableMapping
-import tablib
+from tabulate import tabulate
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,12 +88,12 @@ class BaseParser:
         self.table = defaultdict(lambda: defaultdict(list))
 
         for x, y in self.rules:
-            for t in self.first[y]:
+            for t in self.first[x]:
                 self.table[x][t].append((x, y))
-            if y in self.nullables:
-                for t in self.follow[x]:
-                    self.table[x][t].append((x, y))
-        print(self.table)
+            if x in self.nullables:
+                for terminal in terminals:
+                    self.table[x][terminal].append((x,y))
+        tabulate()
 
     def __str__(self) -> str:
         rules_dict = defaultdict(list)
@@ -140,3 +140,4 @@ if __name__ == "__main__":
     print(f"first = {interesting_first}")
     interesting_follows = {k: v for k, v in p.follow.items() if k in non_terminals}
     print(f"{interesting_follows=}")
+    p.build_parsing_table()

@@ -337,7 +337,7 @@ source = { editable = "." }
 dependencies = [
     { name = "ipykernel" },
     { name = "pytest" },
-    { name = "tablib" },
+    { name = "tabulate" },
 ]
 
 [package.dev-dependencies]
@@ -349,7 +349,7 @@ dev = [
 requires-dist = [
     { name = "ipykernel", specifier = ">=7.1.0" },
     { name = "pytest", specifier = ">=9.0.2" },
-    { name = "tablib", specifier = ">=3.9.0" },
+    { name = "tabulate", specifier = ">=0.9.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -482,12 +482,12 @@ wheels = [
 ]
 
 [[package]]
-name = "tablib"
-version = "3.9.0"
+name = "tabulate"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/11/00/416d2ba54d7d58a7f7c61bf62dfeb48fd553cf49614daf83312f2d2c156e/tablib-3.9.0.tar.gz", hash = "sha256:1b6abd8edb0f35601e04c6161d79660fdcde4abb4a54f66cc9f9054bd55d5fe2", size = 125565, upload-time = "2025-10-15T18:21:56.263Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/fe/802052aecb21e3797b8f7902564ab6ea0d60ff8ca23952079064155d1ae1/tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c", size = 81090, upload-time = "2022-10-06T17:21:48.54Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/66/6b/32e51d847148b299088fc42d3d896845fd09c5247190133ea69dbe71ba51/tablib-3.9.0-py3-none-any.whl", hash = "sha256:eda17cd0d4dda614efc0e710227654c60ddbeb1ca92cdcfc5c3bd1fc5f5a6e4a", size = 49580, upload-time = "2025-10-15T18:21:44.185Z" },
+    { url = "https://files.pythonhosted.org/packages/40/44/4a5f08c96eb108af5cb50b41f76142f0afa346dfa99d5296fe7202a11854/tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f", size = 35252, upload-time = "2022-10-06T17:21:44.262Z" },
 ]
 
 [[package]]
