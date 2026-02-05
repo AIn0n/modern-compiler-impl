@@ -23,7 +23,6 @@ def test_example_grammar_3_12():
     non_terminals = p.get_all_nonterminals()
     assert non_terminals == set(["X", "Y", "Z"])
     assert p.nullables == set(["X", "Y"])
-    interesting_first = {k: v for k, v in p.first.items() if k in non_terminals}
 
     # Literally table from page n 50
     assert p.first["X"] == set(["a", "c"])
@@ -34,3 +33,45 @@ def test_example_grammar_3_12():
     assert p.follow["Y"] == set(["a", "c", "d"])
     assert len(p.follow["Z"]) == 0
 
+def test_ll_parser_on_grammar_3_15():
+    p = BaseParser()
+    p.add_rules(
+        "S -> E $",
+        "T -> F T'",
+        "E -> T E'",
+        "E' -> + T E'",
+        "E' -> - T E'",
+        "E' ->",
+        "T' -> * F T'",
+        "T' -> / F T'",
+        "T' ->",
+        "F -> id",
+        "F -> num",
+        "F -> ( E )",
+    )
+    p.compute_first_follow_nullable()
+
+    # Table 3.16
+
+    ## nullables
+    assert {"E'", "T'"} == p.nullables
+
+    ## first
+    assert {"(", "id", "num"} == p.first["S"]
+    assert {"(", "id", "num"} == p.first["E"]
+    assert {"(", "id", "num"} == p.first["T"]
+    assert {"(", "id", "num"} == p.first["F"]
+
+    assert {"/", "*"} == p.first["T'"]
+    assert {"-", "+"} == p.first["E'"]
+
+    ## follows
+    assert len(p.follow["S"]) == 0
+
+    assert {")", "$"} == p.follow["E"]
+    assert {")", "$"} == p.follow["E'"]
+
+    assert {")", "+", "-", "$"} == p.follow["T"]
+    assert {")", "+", "-", "$"} == p.follow["T'"]
+
+    assert {")", "+", "-", "*", "/", "$"} == p.follow["F"]

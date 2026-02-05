@@ -50,11 +50,11 @@ class BaseParser:
         if len(seq) == 0:
             return True
         return all(map(lambda x: x in self.nullables, seq))
-    
+
     def count_first_follow_nullables(self) -> int:
         return sum(
-                map(len, [self.nullables, *self.follow.values(), *self.first.values()])
-            )
+            map(len, [self.nullables, *self.follow.values(), *self.first.values()])
+        )
 
     def compute_first_follow_nullable(self, one_iteration: bool = False) -> None:
         self.nullables = set()
