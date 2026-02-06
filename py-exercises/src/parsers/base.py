@@ -2,7 +2,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
 from typing import MutableMapping
+from functools import cached_property
+
 from tabulate import tabulate
+
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,6 +28,16 @@ class BaseParser:
         self.first: MutableMapping[str, set[str]] = defaultdict(set)
         self.follow: MutableMapping[str, set[str]] = defaultdict(set)
 
+    @cached_property
+    def non_terminals(self) -> list[str]:
+        return set([lhs for lhs, _ in self.rules])
+
+    @cached_property
+    def terminals(self) -> list[str]:
+        all_rhs_symbols = set(chain.from_iterable([rhs for _, rhs in self.rules]))
+        # everything from the rules, except right hands side
+        return all_rhs_symbols - self.non_terminals
+
     def add_rule(self, rule: str) -> None:
         lhs, rhs = rule.split("->")
         rhs_list = rhs.strip().split()
@@ -36,15 +49,6 @@ class BaseParser:
 
     def _rule_to_str(self, rules: list[str]) -> str:
         return " ".join(rules) if len(rules) else self.styling.epsilon
-
-    def get_all_nonterminals(self) -> set[str]:
-        # just get all right hand side symbols
-        return set([lhs for lhs, _ in self.rules])
-
-    def get_all_terminals(self) -> set[str]:
-        all_rhs_symbols = set(chain.from_iterable([rhs for _, rhs in self.rules]))
-        # everything from the rules, except right hands side
-        return all_rhs_symbols - self.get_all_nonterminals()
 
     def _is_sequence_nullable(self, seq: list[str]) -> bool:
         if len(seq) == 0:
@@ -61,7 +65,7 @@ class BaseParser:
         self.follow = defaultdict(set)
         self.first = defaultdict(set)
 
-        for terminal in self.get_all_terminals():
+        for terminal in self.terminals:
             self.first[terminal] = set([terminal])
 
         while True:
@@ -83,17 +87,50 @@ class BaseParser:
             if one_iteration or (changed == self.count_first_follow_nullables()):
                 break
 
-    def build_parsing_table(self):
-        terminals = enumerate(self.get_all_terminals())
-        self.table = defaultdict(lambda: defaultdict(list))
+    def first_rhs(self, y: list[str]) -> set[str]:
+        if len(y) == 0:
+            return set()
+        if y[0] in self.nullables:
+            return self.first[y[0]].union(self.first_rhs(y[1:]))
+        return self.first[y[0]]
+
+    def nullable_rhs(self, y: list[str]) -> bool:
+        return (not len(y)) or all(map(lambda x: x in self.nullables, y))
+
+    @cached_property
+    def parsing_table(self):
+        self.compute_first_follow_nullable()
+
+        table = defaultdict(lambda: defaultdict(list))
 
         for x, y in self.rules:
-            for t in self.first[x]:
-                self.table[x][t].append((x, y))
-            if x in self.nullables:
-                for terminal in terminals:
-                    self.table[x][terminal].append((x,y))
-        tabulate()
+            for t in self.first_rhs(y):
+                table[x][t].append((x, y))
+            if not self.nullable_rhs(y):
+                continue
+            for t in self.follow[x]:
+                table[x][t].append((x, y))
+
+        return table
+
+    def _table_cell2str(self, x: str, t: str) -> str:
+        res = ""
+        if t not in self.parsing_table[x]:
+            return res
+        for el in self.parsing_table[x][t]:
+            _, y = el
+            res += f"{x} -> {", ".join(y)}\n"
+        return res
+
+    def get_tabulate(self, fmt: str = "github") -> str:
+        rows = sorted(self.non_terminals)
+        cols = sorted(list(self.terminals))
+
+        list_table = []
+        for row in rows:
+            list_table.append([row] + [self._table_cell2str(row, col) for col in cols])
+
+        return tabulate(list_table, headers=[""] + cols, tablefmt=fmt)
 
     def __str__(self) -> str:
         rules_dict = defaultdict(list)
@@ -133,11 +170,12 @@ if __name__ == "__main__":
         "X -> a",
     )
     p.compute_first_follow_nullable(one_iteration=False)
-    non_terminals = p.get_all_nonterminals()
+    non_terminals = p.non_terminals
     print(f"{non_terminals=}")
-    print(f"nullables = {p.nullables}")
+    print(f"{p.nullables=}")
     interesting_first = {k: v for k, v in p.first.items() if k in non_terminals}
     print(f"first = {interesting_first}")
     interesting_follows = {k: v for k, v in p.follow.items() if k in non_terminals}
     print(f"{interesting_follows=}")
-    p.build_parsing_table()
+    p.parsing_table
+    print(f"{p.get_tabulate(fmt="simple_grid")}")

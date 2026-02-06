@@ -20,7 +20,7 @@ def test_example_grammar_3_12():
         "X -> a",
     )
     p.compute_first_follow_nullable()
-    non_terminals = p.get_all_nonterminals()
+    non_terminals = p.non_terminals
     assert non_terminals == set(["X", "Y", "Z"])
     assert p.nullables == set(["X", "Y"])
 
