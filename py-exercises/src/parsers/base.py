@@ -7,7 +7,6 @@ from functools import cached_property
 from tabulate import tabulate
 
 
-
 @dataclass(frozen=True, slots=True)
 class ParserPrintStyler:
     epsilon: str = "ε"
@@ -21,7 +20,7 @@ class BaseParser:
     def __init__(self, styling: ParserPrintStyler = None) -> None:
         if styling is None:
             styling = ParserPrintStyler()
-        self.rules = []
+        self.rules: list[tuple[str, set[str]]] = []
         self.styling = styling
 
         self.nullables = set()
@@ -40,15 +39,12 @@ class BaseParser:
 
     def add_rule(self, rule: str) -> None:
         lhs, rhs = rule.split("->")
-        rhs_list = rhs.strip().split()
+        rhs_list = tuple(rhs.strip().split())
         self.rules.append(tuple([lhs.strip(), rhs_list]))
 
     def add_rules(self, *rules) -> None:
         for rule in rules:
             self.add_rule(rule)
-
-    def _rule_to_str(self, rules: list[str]) -> str:
-        return " ".join(rules) if len(rules) else self.styling.epsilon
 
     def _is_sequence_nullable(self, seq: list[str]) -> bool:
         if len(seq) == 0:
@@ -101,17 +97,19 @@ class BaseParser:
     def parsing_table(self):
         self.compute_first_follow_nullable()
 
-        table = defaultdict(lambda: defaultdict(list))
+        table = defaultdict(lambda: defaultdict(set))
 
         for x, y in self.rules:
             for t in self.first_rhs(y):
-                table[x][t].append((x, y))
+                table[x][t].add((x, y))
             if not self.nullable_rhs(y):
                 continue
             for t in self.follow[x]:
-                table[x][t].append((x, y))
-
+                table[x][t].add((x, y))
         return table
+
+    def _rhs2str(self, rules: list[str]) -> str:
+        return " ".join(rules) if len(rules) else self.styling.epsilon
 
     def _table_cell2str(self, x: str, t: str) -> str:
         res = ""
@@ -119,7 +117,7 @@ class BaseParser:
             return res
         for el in self.parsing_table[x][t]:
             _, y = el
-            res += f"{x} -> {", ".join(y)}\n"
+            res += f"{x} -> {self._rhs2str(y)}\n"
         return res
 
     def get_tabulate(self, fmt: str = "github") -> str:
@@ -144,16 +142,18 @@ class BaseParser:
         for k, v in rules_dict.items():
             prefix = f"{k:{offset_sym}<{left_pad}}"
             if len(v) == 1:
-                res += f"{prefix}{offset_sym * 2} {self._rule_to_str(v[0])}\n"
+                res += f"{prefix}{offset_sym * 2} {self._rhs2str(v[0])}\n"
                 continue
 
             first, *rest, last = v
-            res += f"{prefix}{self.styling.pipe_wne}{offset_sym} {self._rule_to_str(first)}\n"
+            res += (
+                f"{prefix}{self.styling.pipe_wne}{offset_sym} {self._rhs2str(first)}\n"
+            )
 
             for rule in rest:
-                res += f"{offset}{self.styling.pipe_nes}{offset_sym} {self._rule_to_str(rule)}\n"
+                res += f"{offset}{self.styling.pipe_nes}{offset_sym} {self._rhs2str(rule)}\n"
 
-            res += f"{offset}{self.styling.pipe_ne}{offset_sym} {self._rule_to_str(last)}\n"
+            res += f"{offset}{self.styling.pipe_ne}{offset_sym} {self._rhs2str(last)}\n"
 
         return res
 
@@ -178,4 +178,4 @@ if __name__ == "__main__":
     interesting_follows = {k: v for k, v in p.follow.items() if k in non_terminals}
     print(f"{interesting_follows=}")
     p.parsing_table
-    print(f"{p.get_tabulate(fmt="simple_grid")}")
+    print(f"{p.get_tabulate(fmt='simple_grid')}")
