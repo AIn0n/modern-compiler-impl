@@ -1,6 +1,10 @@
 # Created by https://gitignore.org
 # Python.gitignore
 
+# pngs, probably mostly images of the exercise and so on
+*.png
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

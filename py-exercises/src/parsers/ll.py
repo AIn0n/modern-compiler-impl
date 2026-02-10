@@ -16,7 +16,7 @@ class ParserPrintStyler:
     pipe_ne: str = "└"
 
 
-class BaseParser:
+class LL1Parser:
     def __init__(self, styling: ParserPrintStyler = None) -> None:
         if styling is None:
             styling = ParserPrintStyler()
@@ -112,15 +112,12 @@ class BaseParser:
         return " ".join(rules) if len(rules) else self.styling.epsilon
 
     def _table_cell2str(self, x: str, t: str) -> str:
-        res = ""
         if t not in self.parsing_table[x]:
-            return res
-        for el in self.parsing_table[x][t]:
-            _, y = el
-            res += f"{x} -> {self._rhs2str(y)}\n"
-        return res
+            return ""
+        l = [f"{x} -> {self._rhs2str(y)}" for _, y in self.parsing_table[x][t]]
+        return "\n".join(l)
 
-    def get_tabulate(self, fmt: str = "github") -> str:
+    def get_tabulate(self, fmt: str = "simple_grid") -> str:
         rows = sorted(self.non_terminals)
         cols = sorted(list(self.terminals))
 
@@ -160,7 +157,7 @@ class BaseParser:
 
 if __name__ == "__main__":
     # Example from grammar 3.12
-    p = BaseParser()
+    p = LL1Parser()
     p.add_rules(
         "Z -> d",
         "Z -> X Y Z",
@@ -178,4 +175,4 @@ if __name__ == "__main__":
     interesting_follows = {k: v for k, v in p.follow.items() if k in non_terminals}
     print(f"{interesting_follows=}")
     p.parsing_table
-    print(f"{p.get_tabulate(fmt='simple_grid')}")
+    print(f"{p.get_tabulate()}")

@@ -1,16 +1,15 @@
-import pytest
-from parsers.base import BaseParser
+from parsers.ll import LL1Parser
 
-# Example test for BaseParser
+# Example test for LL1Parser
 
 def test_base_parser_initialization():
-    parser = BaseParser()
+    parser = LL1Parser()
     assert parser is not None
 
 
 def test_example_grammar_3_12():
     # Example from grammar 3.12
-    p = BaseParser()
+    p = LL1Parser()
     p.add_rules(
         "Z -> d",
         "Z -> X Y Z",
@@ -34,7 +33,7 @@ def test_example_grammar_3_12():
     assert len(p.follow["Z"]) == 0
 
 def test_ll_parser_on_grammar_3_15():
-    p = BaseParser()
+    p = LL1Parser()
     p.add_rules(
         "S -> E $",
         "T -> F T'",
