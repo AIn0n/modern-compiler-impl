@@ -1,52 +1,21 @@
 from collections import defaultdict
-from dataclasses import dataclass
 from itertools import chain
 from typing import MutableMapping
 from functools import cached_property
+from .baseParser import BaseParser, ParserPrintStyler
 
 from tabulate import tabulate
 
 
-@dataclass(frozen=True, slots=True)
-class ParserPrintStyler:
-    epsilon: str = "ε"
-    hor_line: str = "─"
-    pipe_wne: str = "┬"
-    pipe_nes: str = "├"
-    pipe_ne: str = "└"
+class LL1Parser(BaseParser):
+    def __init__(self, styling: ParserPrintStyler | None = None) -> None:
+        super().__init__(styling=styling)
 
-
-class LL1Parser:
-    def __init__(self, styling: ParserPrintStyler = None) -> None:
-        if styling is None:
-            styling = ParserPrintStyler()
-        self.rules: list[tuple[str, set[str]]] = []
-        self.styling = styling
-
-        self.nullables = set()
+        self.nullables: set[str] = set()
         self.first: MutableMapping[str, set[str]] = defaultdict(set)
         self.follow: MutableMapping[str, set[str]] = defaultdict(set)
 
-    @cached_property
-    def non_terminals(self) -> list[str]:
-        return set([lhs for lhs, _ in self.rules])
-
-    @cached_property
-    def terminals(self) -> list[str]:
-        all_rhs_symbols = set(chain.from_iterable([rhs for _, rhs in self.rules]))
-        # everything from the rules, except right hands side
-        return all_rhs_symbols - self.non_terminals
-
-    def add_rule(self, rule: str) -> None:
-        lhs, rhs = rule.split("->")
-        rhs_list = tuple(rhs.strip().split())
-        self.rules.append(tuple([lhs.strip(), rhs_list]))
-
-    def add_rules(self, *rules) -> None:
-        for rule in rules:
-            self.add_rule(rule)
-
-    def _is_sequence_nullable(self, seq: list[str]) -> bool:
+    def _is_sequence_nullable(self, seq: tuple[str, ...]) -> bool:
         if len(seq) == 0:
             return True
         return all(map(lambda x: x in self.nullables, seq))
@@ -83,7 +52,7 @@ class LL1Parser:
             if one_iteration or (changed == self.count_first_follow_nullables()):
                 break
 
-    def first_rhs(self, y: list[str]) -> set[str]:
+    def first_rhs(self, y: tuple[str, ...]) -> set[str]:
         if len(y) == 0:
             return set()
         if y[0] in self.nullables:
@@ -108,7 +77,7 @@ class LL1Parser:
                 table[x][t].add((x, y))
         return table
 
-    def _rhs2str(self, rules: list[str]) -> str:
+    def _rhs2str(self, rules: tuple[str, ...]) -> str:
         return " ".join(rules) if len(rules) else self.styling.epsilon
 
     def _table_cell2str(self, x: str, t: str) -> str:
@@ -126,33 +95,6 @@ class LL1Parser:
             list_table.append([row] + [self._table_cell2str(row, col) for col in cols])
 
         return tabulate(list_table, headers=[""] + cols, tablefmt=fmt)
-
-    def __str__(self) -> str:
-        rules_dict = defaultdict(list)
-        for lhs, rhs in self.rules:
-            rules_dict[lhs].append(rhs)
-
-        left_pad = max(map(len, rules_dict.keys())) + 1
-        offset_sym = self.styling.hor_line
-        res = ""
-        offset = left_pad * " "
-        for k, v in rules_dict.items():
-            prefix = f"{k:{offset_sym}<{left_pad}}"
-            if len(v) == 1:
-                res += f"{prefix}{offset_sym * 2} {self._rhs2str(v[0])}\n"
-                continue
-
-            first, *rest, last = v
-            res += (
-                f"{prefix}{self.styling.pipe_wne}{offset_sym} {self._rhs2str(first)}\n"
-            )
-
-            for rule in rest:
-                res += f"{offset}{self.styling.pipe_nes}{offset_sym} {self._rhs2str(rule)}\n"
-
-            res += f"{offset}{self.styling.pipe_ne}{offset_sym} {self._rhs2str(last)}\n"
-
-        return res
 
 
 if __name__ == "__main__":
