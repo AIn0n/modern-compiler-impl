@@ -2,8 +2,8 @@ from collections import defaultdict
 from typing import MutableMapping
 from functools import cached_property
 
-from .baseParser import BaseParser, ParserPrintStyler
-from .example_grammars import GRAMMAR_3_12
+from parsers.baseParser import BaseParser, ParserPrintStyler
+from parsers.example_grammars import GRAMMAR_3_12
 
 from tabulate import tabulate
 
