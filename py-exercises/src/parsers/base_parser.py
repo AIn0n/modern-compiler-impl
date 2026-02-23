@@ -15,6 +15,10 @@ class ParserPrintStyler:
 
 RuleType = tuple[str, tuple[str, ...]]
 
+def str2rule(s: str) -> RuleType:
+    lhs, rhs = s.split("->")
+    rhs_list = tuple(rhs.strip().split())
+    return (lhs.strip(), rhs_list)
 
 class BaseParser:
     """
@@ -43,10 +47,7 @@ class BaseParser:
         Parse rule from simple string, to tuple, with first element
         non-terminal, and second tuple of strings.
         """
-        lhs, rhs = rule.split("->")
-        rhs_list = tuple(rhs.strip().split())
-        r = (lhs.strip(), rhs_list)
-        self.rules.append(r)
+        self.rules.append(str2rule(rule))
 
     def add_rules(self, *rules) -> None:
         for rule in rules:
