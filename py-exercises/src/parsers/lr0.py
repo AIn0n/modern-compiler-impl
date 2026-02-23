@@ -1,6 +1,18 @@
+from dataclasses import dataclass
+from typing import Optional
+
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
 from parsers.example_grammars import GRAMMAR_3_20
-from dataclasses import dataclass
+
+
+def swap_with_next(c: tuple, i: int) -> tuple:
+    """
+    swap tuple i element with the next one, return new tuple
+    """
+    j = i + 1
+    *begin, i_val = c[:j]
+    j_val, *end = c[j:]
+    return (*begin, j_val, i_val, *end)
 
 
 @dataclass(slots=True, frozen=True)
@@ -8,13 +20,24 @@ class LRItem:
     rule: RuleType
     dot_idx: int
 
-    def next_dot_sym(self) -> str:
+    def next_dot_sym(self) -> Optional[str]:
         """
         Get the first symbol (next to) after the dot. This method is beneficial
         for closure in LR parser.
         """
-        _, lhs = self.rule
-        return lhs[self.dot_idx + 1]
+        _, rhs = self.rule
+        next_idx = self.dot_idx + 1
+        return None if next_idx >= len(rhs) else rhs[next_idx]
+
+    def advance_dot(self) -> LRItem:
+        """
+        Return the copy of the class, with dot moved one position to the right.
+        """
+        lhs, rhs = self.rule
+        # swap dot with next element after it
+        new_rhs = swap_with_next(rhs, self.dot_idx)
+
+        return LRItem(rule=(lhs, new_rhs), dot_idx=self.dot_idx + 1)
 
     @staticmethod
     def from_rule(rule: RuleType) -> LRItem:
@@ -53,8 +76,8 @@ class LR0Parser(BaseParser):
                 # closure works only for in cases where next to dot (at X position)
                 # is non terminal element. Thanks to this statement we will not
                 # unnecessarily scan thru rules
-                x = el.next_dot_sym()
-                if x in self.terminals:
+                x: Optional[str] = el.next_dot_sym()
+                if x is None or x in self.terminals:
                     continue
                 for rule in self.rules:
                     # check rhs
@@ -68,6 +91,11 @@ class LR0Parser(BaseParser):
                 break
             i = new_i
         return i
+
+    def goto(self, i: set[LRItem], x: str) -> set[LRItem]:
+        # from page 60-61
+        j = set([el.advance_dot() for el in i])
+        return self.closure(j)
 
     def compute_states_and_edges(self):
         # state collection
@@ -87,6 +115,6 @@ if __name__ == "__main__":
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
-    given_items = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
-
+    first_closure = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
+    given_items = p.goto(first_closure, "(")
     print(given_items)

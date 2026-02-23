@@ -81,8 +81,8 @@ class LL1Parser(BaseParser):
     def _table_cell2str(self, x: str, t: str) -> str:
         if t not in self.parsing_table[x]:
             return ""
-        l = [f"{x} -> {self._rhs2str(y)}" for _, y in self.parsing_table[x][t]]
-        return "\n".join(l)
+        line = [f"{x} -> {self._rhs2str(y)}" for _, y in self.parsing_table[x][t]]
+        return "\n".join(line)
 
     def get_tabulate(self, fmt: str = "simple_grid") -> str:
         rows = sorted(self.non_terminals)
