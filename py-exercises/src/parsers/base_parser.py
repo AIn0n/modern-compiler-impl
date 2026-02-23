@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
 from collections import defaultdict
+from typing import NamedTuple
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,13 +14,14 @@ class ParserPrintStyler:
     pipe_ne: str = "└"
 
 
-RuleType = tuple[str, tuple[str, ...]]
+class RuleType(NamedTuple):
+    lhs: str
+    rhs: tuple[str, ...]
 
-
-def str2rule(s: str) -> RuleType:
-    lhs, rhs = s.split("->")
-    rhs_list = tuple(rhs.strip().split())
-    return (lhs.strip(), rhs_list)
+    @staticmethod
+    def from_str(s: str) -> RuleType:
+        lhs, rhs = s.split("->")
+        return RuleType(lhs=lhs.strip(), rhs=tuple(rhs.strip().split()))
 
 
 class BaseParser:
@@ -36,11 +38,11 @@ class BaseParser:
 
     @cached_property
     def non_terminals(self) -> set[str]:
-        return set([lhs for lhs, _ in self.rules])
+        return set([el.lhs for el in self.rules])
 
     @cached_property
     def terminals(self) -> set[str]:
-        all_rhs_symbols = set(chain.from_iterable([rhs for _, rhs in self.rules]))
+        all_rhs_symbols = set(chain.from_iterable([el.rhs for el in self.rules]))
         # everything from the rules, except right hands side
         return all_rhs_symbols - self.non_terminals
 
@@ -49,14 +51,14 @@ class BaseParser:
         Parse rule from simple string, to tuple, with first element
         non-terminal, and second tuple of strings.
         """
-        self.rules.append(str2rule(rule))
+        self.rules.append(RuleType.from_str(rule))
 
     def add_rules(self, *rules) -> None:
         for rule in rules:
             self.add_rule(rule)
 
-    def _rhs2str(self, rules: tuple[str, ...]) -> str:
-        return " ".join(rules) if len(rules) else self.styling.epsilon
+    def _rhs2str(self, rhs: tuple[str, ...]) -> str:
+        return " ".join(rhs) if len(rhs) else self.styling.epsilon
 
     def __str__(self) -> str:
         rules_dict = defaultdict(list)

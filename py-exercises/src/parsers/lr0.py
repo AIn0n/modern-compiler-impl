@@ -23,21 +23,21 @@ class LRItem:
     def peek_after_dot(self) -> Optional[str]:
         """
         Get the first symbol (next to) after the dot. This method is beneficial
-        for closure in LR parser.
+        for closure in LR parser. Return None if there's no symbol after the dot.
         """
-        _, rhs = self.rule
         next_idx = self.dot_idx + 1
-        return None if next_idx >= len(rhs) else rhs[next_idx]
+        return None if next_idx >= len(self.rule.rhs) else self.rule.rhs[next_idx]
 
     def advance_dot(self) -> LRItem:
         """
         Return the copy of the class, with dot moved one position to the right.
         """
-        lhs, rhs = self.rule
         # swap dot with next element after it
-        new_rhs = swap_with_next(rhs, self.dot_idx)
+        new_rhs = swap_with_next(self.rule.rhs, self.dot_idx)
 
-        return LRItem(rule=(lhs, new_rhs), dot_idx=self.dot_idx + 1)
+        return LRItem(
+            rule=RuleType(lhs=self.rule.lhs, rhs=new_rhs), dot_idx=self.dot_idx + 1
+        )
 
     @staticmethod
     def from_rule(rule: RuleType) -> LRItem:
@@ -45,9 +45,7 @@ class LRItem:
         Turn rule into LR item, by default setting the dot at the first position
         on left-hand side.
         """
-        rhs, lhs = rule
-        rule_with_dot = (rhs, tuple([".", *lhs]))
-        return LRItem(rule=rule_with_dot, dot_idx=0)
+        return LRItem(rule=RuleType(rule.lhs, tuple([".", *rule.rhs])), dot_idx=0)
 
 
 class LR0Parser(BaseParser):
@@ -61,7 +59,7 @@ class LR0Parser(BaseParser):
         symbol at the end, by default let it be dollar sign, exactly like in the
         book
         """
-        start = [(lhs, rhs) for lhs, rhs in self.rules if rhs[-1] == self.eol]
+        start = [el for el in self.rules if el.rhs[-1] == self.eol]
         # idk if that's valid or not,
         # it seems logical that grammar should not have two rules ending with
         # End of File, but who knows
@@ -80,10 +78,8 @@ class LR0Parser(BaseParser):
                 if x is None or x in self.terminals:
                     continue
                 for rule in self.rules:
-                    # check rhs
-                    # TODO: build class for rule, to easily access rhs and lhs in
-                    # named, readable way
-                    if rule[0] != x:
+                    # check lhs
+                    if rule.lhs != x:
                         continue
                     new_i.add(LRItem.from_rule(rule))
             # break when I does not change
