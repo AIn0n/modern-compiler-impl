@@ -2,6 +2,7 @@ from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
 from parsers.example_grammars import GRAMMAR_3_20
 from dataclasses import dataclass
 
+
 @dataclass(slots=True, frozen=True)
 class LRItem:
     rule: RuleType
@@ -44,13 +45,13 @@ class LR0Parser(BaseParser):
         assert len(start) == 1
 
         return start[0]
-    
+
     def closure(self, i: set[LRItem]) -> set[LRItem]:
         while True:
             new_i: set[LRItem] = set(i)
             for el in i:
                 # closure works only for in cases where next to dot (at X position)
-                # is non terminal element. Thanks to this statement we will not 
+                # is non terminal element. Thanks to this statement we will not
                 # unnecessarily scan thru rules
                 x = el.next_dot_sym()
                 if x in self.terminals:
@@ -67,7 +68,6 @@ class LR0Parser(BaseParser):
                 break
             i = new_i
         return i
-
 
     def compute_states_and_edges(self):
         # state collection
@@ -86,7 +86,7 @@ class LR0Parser(BaseParser):
 if __name__ == "__main__":
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
-    
+
     given_items = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
 
     print(given_items)

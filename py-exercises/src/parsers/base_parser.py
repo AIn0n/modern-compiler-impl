@@ -15,10 +15,12 @@ class ParserPrintStyler:
 
 RuleType = tuple[str, tuple[str, ...]]
 
+
 def str2rule(s: str) -> RuleType:
     lhs, rhs = s.split("->")
     rhs_list = tuple(rhs.strip().split())
     return (lhs.strip(), rhs_list)
+
 
 class BaseParser:
     """
