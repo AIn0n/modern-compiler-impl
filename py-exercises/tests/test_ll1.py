@@ -1,4 +1,5 @@
 from parsers.ll import LL1Parser
+from parsers.example_grammars import GRAMMAR_3_12, GRAMMAR_3_15
 
 # Example test for LL1Parser
 
@@ -8,16 +9,8 @@ def test_base_parser_initialization():
 
 
 def test_example_grammar_3_12():
-    # Example from grammar 3.12
     p = LL1Parser()
-    p.add_rules(
-        "Z -> d",
-        "Z -> X Y Z",
-        "Y -> ",
-        "Y -> c",
-        "X -> Y",
-        "X -> a",
-    )
+    p.add_rules(*GRAMMAR_3_12)
     p.compute_first_follow_nullable()
     non_terminals = p.non_terminals
     assert non_terminals == set(["X", "Y", "Z"])
@@ -34,20 +27,7 @@ def test_example_grammar_3_12():
 
 def test_ll_parser_on_grammar_3_15():
     p = LL1Parser()
-    p.add_rules(
-        "S -> E $",
-        "T -> F T'",
-        "E -> T E'",
-        "E' -> + T E'",
-        "E' -> - T E'",
-        "E' ->",
-        "T' -> * F T'",
-        "T' -> / F T'",
-        "T' ->",
-        "F -> id",
-        "F -> num",
-        "F -> ( E )",
-    )
+    p.add_rules(*GRAMMAR_3_15)
     p.compute_first_follow_nullable()
 
     # Table 3.16

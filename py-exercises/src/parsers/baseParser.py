@@ -52,6 +52,9 @@ class BaseParser:
         for rule in rules:
             self.add_rule(rule)
 
+    def _rhs2str(self, rules: tuple[str, ...]) -> str:
+        return " ".join(rules) if len(rules) else self.styling.epsilon
+
     def __str__(self) -> str:
         rules_dict = defaultdict(list)
         for lhs, rhs in self.rules:

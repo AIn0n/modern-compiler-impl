@@ -1,8 +1,9 @@
 from collections import defaultdict
-from itertools import chain
 from typing import MutableMapping
 from functools import cached_property
+
 from .baseParser import BaseParser, ParserPrintStyler
+from .example_grammars import GRAMMAR_3_12
 
 from tabulate import tabulate
 
@@ -77,9 +78,6 @@ class LL1Parser(BaseParser):
                 table[x][t].add((x, y))
         return table
 
-    def _rhs2str(self, rules: tuple[str, ...]) -> str:
-        return " ".join(rules) if len(rules) else self.styling.epsilon
-
     def _table_cell2str(self, x: str, t: str) -> str:
         if t not in self.parsing_table[x]:
             return ""
@@ -100,14 +98,7 @@ class LL1Parser(BaseParser):
 if __name__ == "__main__":
     # Example from grammar 3.12
     p = LL1Parser()
-    p.add_rules(
-        "Z -> d",
-        "Z -> X Y Z",
-        "Y -> ",
-        "Y -> c",
-        "X -> Y",
-        "X -> a",
-    )
+    p.add_rules(*GRAMMAR_3_12)
     p.compute_first_follow_nullable(one_iteration=False)
     non_terminals = p.non_terminals
     print(f"{non_terminals=}")
