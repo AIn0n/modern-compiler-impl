@@ -20,7 +20,7 @@ class LRItem:
     rule: RuleType
     dot_idx: int
 
-    def next_dot_sym(self) -> Optional[str]:
+    def peek_after_dot(self) -> Optional[str]:
         """
         Get the first symbol (next to) after the dot. This method is beneficial
         for closure in LR parser.
@@ -76,7 +76,7 @@ class LR0Parser(BaseParser):
                 # closure works only for in cases where next to dot (at X position)
                 # is non terminal element. Thanks to this statement we will not
                 # unnecessarily scan thru rules
-                x: Optional[str] = el.next_dot_sym()
+                x: Optional[str] = el.peek_after_dot()
                 if x is None or x in self.terminals:
                     continue
                 for rule in self.rules:
@@ -94,7 +94,7 @@ class LR0Parser(BaseParser):
 
     def goto(self, i: set[LRItem], x: str) -> set[LRItem]:
         # from page 60-61
-        j = set([el.advance_dot() for el in i])
+        j = set([el.advance_dot() for el in i if el.peek_after_dot() == x])
         return self.closure(j)
 
     def compute_states_and_edges(self):
@@ -117,4 +117,6 @@ if __name__ == "__main__":
 
     first_closure = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
     given_items = p.goto(first_closure, "(")
-    print(given_items)
+    for item in given_items:
+        lhs, rhs = item.rule
+        print(f"{lhs} -> {rhs}")

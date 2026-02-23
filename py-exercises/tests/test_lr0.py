@@ -23,6 +23,8 @@ def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule():
 
     given_items = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
 
+    assert len(expected_items) == len(given_items)
+
     for item in expected_items:
         assert item in given_items
 
