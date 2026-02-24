@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-# from mermaid import Mermaid
-# from mermaid.flowchart import FlowChart
-
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
 from parsers.example_grammars import GRAMMAR_3_20
 
@@ -142,9 +139,6 @@ class LR0Parser(BaseParser):
         self.states = t
         self.edges = e
 
-
-#    def states_as_mermaid(self) -> Mermaid:
-#        return Mermaid(FlowChart())
 
 if __name__ == "__main__":
     p = LR0Parser()
