@@ -3,6 +3,7 @@ from parsers.example_grammars import GRAMMAR_3_12, GRAMMAR_3_15
 
 # Example test for LL1Parser
 
+
 def test_base_parser_initialization():
     parser = LL1Parser()
     assert parser is not None
@@ -24,6 +25,7 @@ def test_example_grammar_3_12():
     assert p.follow["X"] == set(["a", "c", "d"])
     assert p.follow["Y"] == set(["a", "c", "d"])
     assert len(p.follow["Z"]) == 0
+
 
 def test_ll_parser_on_grammar_3_15():
     p = LL1Parser()

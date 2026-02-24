@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
 
+# from mermaid import Mermaid
+# from mermaid.flowchart import FlowChart
+
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
 from parsers.example_grammars import GRAMMAR_3_20
 
@@ -48,10 +51,24 @@ class LRItem:
         return LRItem(rule=RuleType(rule.lhs, tuple([".", *rule.rhs])), dot_idx=0)
 
 
+LRState = frozenset[LRItem]
+
+
+@dataclass(slots=True, frozen=True)
+class LREdge:
+    # TODO: probably it should be done using some sort of hashes, or in some other
+    #       way if should explicitly reference LR state (set of LRItems)
+    from_: LRState
+    to: LRState
+    symbol: str
+
+
 class LR0Parser(BaseParser):
     def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
         super().__init__(styling=styling)
         self.eol = end_symbol
+        self.states: set[LRState] = set()
+        self.edges: set[LREdge] = set()
 
     def get_start_rule(self) -> RuleType:
         """
@@ -67,7 +84,7 @@ class LR0Parser(BaseParser):
 
         return start[0]
 
-    def closure(self, i: set[LRItem]) -> set[LRItem]:
+    def closure(self, i: LRState) -> LRState:
         while True:
             new_i: set[LRItem] = set(i)
             for el in i:
@@ -85,34 +102,56 @@ class LR0Parser(BaseParser):
             # break when I does not change
             if len(new_i) == len(i):
                 break
-            i = new_i
-        return i
+            i = frozenset(new_i)
+        return frozenset(i)
 
-    def goto(self, i: set[LRItem], x: str) -> set[LRItem]:
+    def goto(self, i: LRState, x: str) -> LRState:
         # from page 60-61
-        j = set([el.advance_dot() for el in i if el.peek_after_dot() == x])
+        j = frozenset(el.advance_dot() for el in i if el.peek_after_dot() == x)
         return self.closure(j)
 
-    def compute_states_and_edges(self):
-        # state collection
+    def compute_states_and_edges(self) -> None:
         # first state is just starting rule (one with terminal symbol at end)
         # converted into LR item - rule with dot representing current position
         # at given rule
         start_rule = self.get_start_rule()
-        t: set[set[LRItem]] = set(self.closure(set([LRItem.from_rule(start_rule)])))
-
+        # state collection
+        t: set[LRState] = set([self.closure(frozenset([LRItem.from_rule(start_rule)]))])
         # edges collection
-        e = set()
-        for i in t:
-            ...
+        e: set[LREdge] = set()
+        while True:
+            sizes = len(e) + len(t)
+            new_e = set()
+            new_t: set[LRState] = set()
+            for i in t:
+                for item in i:
+                    x = item.peek_after_dot()
+                    # However, for the symbol $ we do not compute Goto(I, $); instead we will
+                    # make an accept action
+                    if x is None or x == self.eol:
+                        continue
+                    j = self.goto(i, x)
+                    new_t.add(j)
+                    new_e.add(LREdge(from_=i, to=j, symbol=x))
+            t.update(new_t)
+            e.update(new_e)
 
+            if sizes == len(e) + len(t):
+                break
+
+        self.states = t
+        self.edges = e
+
+
+#    def states_as_mermaid(self) -> Mermaid:
+#        return Mermaid(FlowChart())
 
 if __name__ == "__main__":
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
-    first_closure = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
-    given_items = p.goto(first_closure, "(")
-    for item in given_items:
-        lhs, rhs = item.rule
-        print(f"{lhs} -> {rhs}")
+    p.compute_states_and_edges()
+    for state in p.states:
+        print("=== STATE ===")
+        for el in state:
+            print(el)
