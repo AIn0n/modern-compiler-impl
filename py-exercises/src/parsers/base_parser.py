@@ -23,6 +23,9 @@ class RuleType(NamedTuple):
         lhs, rhs = s.split("->")
         return RuleType(lhs=lhs.strip(), rhs=tuple(rhs.strip().split()))
 
+    def __str__(self) -> str:
+        return f"{self.lhs} -> " + " ".join(self.rhs)
+
 
 class BaseParser:
     """

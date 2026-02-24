@@ -1,5 +1,9 @@
+from tabulate import tabulate
+
 from dataclasses import dataclass
 from typing import Optional
+from functools import cached_property
+from enum import Enum
 
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
 from parsers.example_grammars import GRAMMAR_3_20
@@ -13,6 +17,40 @@ def swap_with_next(c: tuple, i: int) -> tuple:
     *begin, i_val = c[:j]
     j_val, *end = c[j:]
     return (*begin, j_val, i_val, *end)
+
+
+class LRActionEnum(Enum):
+    REDUCE = "r"
+    GOTO = "g"
+    SHIFT = "s"
+    ACCEPT = "a"
+
+
+@dataclass(slots=True, frozen=True)
+class LRAction:
+    type_: LRActionEnum
+    to: int
+
+    def __str__(self) -> str:
+        if self.type_ == LRActionEnum.ACCEPT:
+            return "a"
+        return f"{self.type_.value}{self.to}"
+
+    @staticmethod
+    def reduce(n: int) -> LRAction:
+        return LRAction(LRActionEnum.REDUCE, n)
+
+    @staticmethod
+    def shift(n: int) -> LRAction:
+        return LRAction(LRActionEnum.SHIFT, n)
+
+    @staticmethod
+    def accept() -> LRAction:
+        return LRAction(LRActionEnum.ACCEPT, -1)
+
+    @staticmethod
+    def goto(n: int) -> LRAction:
+        return LRAction(LRActionEnum.GOTO, n)
 
 
 @dataclass(slots=True, frozen=True)
@@ -39,6 +77,17 @@ class LRItem:
             rule=RuleType(lhs=self.rule.lhs, rhs=new_rhs), dot_idx=self.dot_idx + 1
         )
 
+    def is_dot_at_end(self) -> bool:
+        return self.dot_idx == len(self.rule.rhs) - 1
+
+    def to_rule(self) -> RuleType:
+        """
+        Get simple rule from given item - just by removing the dot.
+        """
+        return RuleType(
+            lhs=self.rule.lhs, rhs=tuple(el for el in self.rule.rhs if el != ".")
+        )
+
     @staticmethod
     def from_rule(rule: RuleType) -> LRItem:
         """
@@ -46,6 +95,9 @@ class LRItem:
         on left-hand side.
         """
         return LRItem(rule=RuleType(rule.lhs, tuple([".", *rule.rhs])), dot_idx=0)
+
+    def __str__(self) -> str:
+        return str(self.rule)
 
 
 LRState = frozenset[LRItem]
@@ -138,6 +190,50 @@ class LR0Parser(BaseParser):
 
         self.states = t
         self.edges = e
+        self.state_to_idx = {state: str(idx) for idx, state in enumerate(t)}
+
+    @cached_property
+    def symbols(self) -> set[str]:
+        return self.terminals | self.non_terminals
+
+    @cached_property
+    def parsing_table(self):
+        self.compute_states_and_edges()
+
+        self.rule_to_idx = {r: i for i, r in enumerate(self.rules)}
+        t = {
+            i: {sym: set() for sym in self.symbols} for i in self.state_to_idx.values()
+        }
+        for i, state_idx in self.state_to_idx.items():
+            for item in i:
+                if item.is_dot_at_end():
+                    rule_idx = self.rule_to_idx[item.to_rule()]
+                    for non_term in self.terminals:
+                        t[state_idx][non_term].add(LRAction.reduce(rule_idx))
+                if item.peek_after_dot() == self.eol:
+                    t[state_idx][self.eol].add(LRAction.accept())
+
+        for edge in self.edges:
+            i = self.state_to_idx[edge.from_]
+            j = self.state_to_idx[edge.to]
+            t[i][edge.symbol].add(LRAction.shift(j))
+
+        return t
+
+    def _table_cell2str(self, c: set[LRAction]) -> str:
+        return ", ".join(map(str, c))
+
+    def to_tabulate(self) -> str:
+        list_table = []
+        # columns in the same order like in book - first non-terminals
+        headers = [*self.terminals, *self.non_terminals]
+        for idx, row in self.parsing_table.items():
+            r = [idx]
+            for col in headers:
+                r.append(self._table_cell2str(row[col]))
+            list_table.append(r)
+
+        return tabulate(list_table, headers=[""] + headers, tablefmt="simple_grid")
 
 
 if __name__ == "__main__":
