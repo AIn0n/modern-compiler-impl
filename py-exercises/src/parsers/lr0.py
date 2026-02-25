@@ -1,7 +1,7 @@
 from tabulate import tabulate
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Mapping
 from functools import cached_property
 from enum import Enum
 
@@ -105,18 +105,28 @@ LRState = frozenset[LRItem]
 
 @dataclass(slots=True, frozen=True)
 class LREdge:
-    # TODO: probably it should be done using some sort of hashes, or in some other
-    #       way if should explicitly reference LR state (set of LRItems)
-    from_: LRState
-    to: LRState
+    """
+    Stores states from and to indexes and symbol on the given edge. Also can store
+    whole LRState inside, but it seems to be bad idea during parsing table building.
+    """
+
+    from_: LRState | int
+    to: LRState | int
     symbol: str
+
+    def convert_to_idx(self, lookup: Mapping[LRState, int]) -> LREdge:
+        """
+        Convert states in edge from whole objects to indexes.
+        """
+        assert not (isinstance(self.from_, int) or isinstance(self.to, int))
+        return LREdge(from_=lookup[self.from_], to=lookup[self.to], symbol=self.symbol)
 
 
 class LR0Parser(BaseParser):
     def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
         super().__init__(styling=styling)
         self.eol = end_symbol
-        self.states: set[LRState] = set()
+        self.states: set[LRState] | dict[int, LRState] = set()
         self.edges: set[LREdge] = set()
 
     def get_start_rule(self) -> RuleType:
@@ -188,9 +198,9 @@ class LR0Parser(BaseParser):
             if sizes == len(e) + len(t):
                 break
 
-        self.states = t
-        self.edges = e
-        self.state_to_idx = {state: str(idx) for idx, state in enumerate(t)}
+        self.states = {idx: state for idx, state in enumerate(t)}
+        lookup = {v: k for k, v in self.states.items()}
+        self.edges = set(map(lambda x: x.convert_to_idx(lookup), e))
 
     @cached_property
     def symbols(self) -> set[str]:
@@ -201,22 +211,19 @@ class LR0Parser(BaseParser):
         self.compute_states_and_edges()
 
         self.rule_to_idx = {r: i for i, r in enumerate(self.rules)}
-        t = {
-            i: {sym: set() for sym in self.symbols} for i in self.state_to_idx.values()
-        }
-        for i, state_idx in self.state_to_idx.items():
+        t = {i: {sym: set() for sym in self.symbols} for i in self.states.keys()}
+        for idx, i in self.states.items():
             for item in i:
                 if item.is_dot_at_end():
                     rule_idx = self.rule_to_idx[item.to_rule()]
                     for non_term in self.terminals:
-                        t[state_idx][non_term].add(LRAction.reduce(rule_idx))
+                        t[idx][non_term].add(LRAction.reduce(rule_idx))
                 if item.peek_after_dot() == self.eol:
-                    t[state_idx][self.eol].add(LRAction.accept())
+                    t[idx][self.eol].add(LRAction.accept())
 
         for edge in self.edges:
-            i = self.state_to_idx[edge.from_]
-            j = self.state_to_idx[edge.to]
-            t[i][edge.symbol].add(LRAction.shift(j))
+            action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
+            t[edge.from_][edge.symbol].add(action(edge.to))
 
         return t
 
@@ -241,7 +248,3 @@ if __name__ == "__main__":
     p.add_rules(*GRAMMAR_3_20)
 
     p.compute_states_and_edges()
-    for state in p.states:
-        print("=== STATE ===")
-        for el in state:
-            print(el)
