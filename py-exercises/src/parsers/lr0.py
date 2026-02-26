@@ -232,7 +232,7 @@ class LR0Parser(BaseParser):
 
     def to_tabulate(self) -> str:
         list_table = []
-        # columns in the same order like in book - first non-terminals
+        # columns in the same order like in book - first terminals
         headers = [*self.terminals, *self.non_terminals]
         for idx, row in self.parsing_table.items():
             r = [idx]
