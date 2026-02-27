@@ -11,7 +11,7 @@ class LR0Parser(BaseParser):
     def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
         super().__init__(styling=styling)
         self.eol = end_symbol
-        self.states: set[LRState] | dict[int, LRState] = set()
+        self.states: dict[int, LRState] = dict()
         self.edges: set[LREdge] = set()
 
     @cached_property
@@ -57,6 +57,14 @@ class LR0Parser(BaseParser):
         # from page 60-61
         j = frozenset(el.advance_dot() for el in i if el.peek_after_dot() == x)
         return self.closure(j)
+
+    def get_starting_state_idx(self) -> int:
+        start_item = LRItem.from_rule(self.get_start_rule())
+        for idx, state in self.states.items():
+            if start_item in state:
+                return idx
+
+        assert False
 
     def compute_states_and_edges(self) -> None:
         # first state is just starting rule (one with terminal symbol at end)

@@ -17,7 +17,6 @@ def state_to_str(state: LRState) -> str:
 def lr_parser_to_mermaid(p: LR0Parser, title: Optional[str] = None) -> FlowChart:
     if title is None:
         title = ""
-    assert isinstance(p.states, dict)
     nodes = {i: Node(str(i), state_to_str(state)) for i, state in p.states.items()}
     links = []
     for edge in p.edges:

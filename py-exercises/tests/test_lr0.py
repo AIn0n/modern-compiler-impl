@@ -1,4 +1,5 @@
-from parsers.lr.lr0 import LR0Parser, LRItem
+from parsers.lr.lr0 import LR0Parser
+from parsers.lr.lr_types import LRItem, LRState
 from parsers.example_grammars import GRAMMAR_3_20
 
 
@@ -76,3 +77,26 @@ def test_lr0_for_grammar_3_20_returns_12_state_edges():
     p.compute_states_and_edges()
 
     assert len(p.edges) == 12
+
+
+def test_lr0_for_grammar_3_20_returns_valid_start_state():
+    p = LR0Parser()
+    p.add_rules(*GRAMMAR_3_20)
+
+    p.compute_states_and_edges()
+    # figure 3.21, page 62
+    expected_start_state: LRState = frozenset(
+        [
+            LRItem(rule=("S'", (".", "S", "$")), dot_idx=0),
+            LRItem(rule=("S", (".", "(", "L", ")")), dot_idx=0),
+            LRItem(rule=("S", (".", "x")), dot_idx=0),
+        ]
+    )
+    assert expected_start_state in p.states.values()
+
+    given_idx = -1
+    for idx, state in p.states.items():
+        if state == expected_start_state:
+            given_idx = idx
+
+    assert p.get_starting_state_idx() == given_idx
