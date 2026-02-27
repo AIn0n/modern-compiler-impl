@@ -36,7 +36,7 @@ class BaseParser:
     def __init__(self, styling: ParserPrintStyler | None = None) -> None:
         if styling is None:
             styling = ParserPrintStyler()
-        self.rules: list[RuleType] = []
+        self.rules: set[RuleType] = set()
         self.styling = styling
 
     @cached_property
@@ -54,7 +54,7 @@ class BaseParser:
         Parse rule from simple string, to tuple, with first element
         non-terminal, and second tuple of strings.
         """
-        self.rules.append(RuleType.from_str(rule))
+        self.rules.add(RuleType.from_str(rule))
 
     def add_rules(self, *rules) -> None:
         for rule in rules:

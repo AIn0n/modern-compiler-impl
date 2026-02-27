@@ -129,6 +129,10 @@ class LR0Parser(BaseParser):
         self.states: set[LRState] | dict[int, LRState] = set()
         self.edges: set[LREdge] = set()
 
+    @cached_property
+    def indexed_rules(self) -> dict[int, RuleType]:
+        return {k: v for k, v in enumerate(self.rules)}
+
     def get_start_rule(self) -> RuleType:
         """
         start rule for production of LR(0) will be the rule, where you have end
@@ -210,12 +214,12 @@ class LR0Parser(BaseParser):
     def parsing_table(self):
         self.compute_states_and_edges()
 
-        self.rule_to_idx = {r: i for i, r in enumerate(self.rules)}
+        rule_lookup = {r: i for i, r in self.indexed_rules.items()}
         t = {i: {sym: set() for sym in self.symbols} for i in self.states.keys()}
         for idx, i in self.states.items():
             for item in i:
                 if item.is_dot_at_end():
-                    rule_idx = self.rule_to_idx[item.to_rule()]
+                    rule_idx = rule_lookup[item.to_rule()]
                     for non_term in self.terminals:
                         t[idx][non_term].add(LRAction.reduce(rule_idx))
                 if item.peek_after_dot() == self.eol:
