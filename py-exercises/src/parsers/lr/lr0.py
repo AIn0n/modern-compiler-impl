@@ -4,8 +4,7 @@ from typing import Optional
 from functools import cached_property
 
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
-from parsers.lr_types import LRAction, LREdge, LRItem, LRState
-from parsers.example_grammars import GRAMMAR_3_20
+from parsers.lr.lr_types import LRAction, LREdge, LRItem, LRState
 
 
 class LR0Parser(BaseParser):
@@ -131,10 +130,3 @@ class LR0Parser(BaseParser):
             list_table.append(r)
 
         return tabulate(list_table, headers=[""] + headers, tablefmt="simple_grid")
-
-
-if __name__ == "__main__":
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_20)
-
-    p.compute_states_and_edges()

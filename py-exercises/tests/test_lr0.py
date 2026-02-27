@@ -1,4 +1,4 @@
-from parsers.lr0 import LR0Parser, LRItem
+from parsers.lr.lr0 import LR0Parser, LRItem
 from parsers.example_grammars import GRAMMAR_3_20
 
 

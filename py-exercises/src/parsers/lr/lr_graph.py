@@ -2,7 +2,8 @@ from typing import Optional
 
 from mermaid.flowchart import Node, Link, FlowChart  # type: ignore[import-untyped]
 
-from .lr0 import LR0Parser, LRState
+from parsers.lr.lr0 import LR0Parser
+from parsers.lr.lr_types import LRState
 
 
 def state_to_str(state: LRState) -> str:
