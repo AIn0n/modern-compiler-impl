@@ -4,7 +4,7 @@ from typing import Optional
 from functools import cached_property
 
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
-from parsers.lr.lr_types import LRAction, LREdge, LRItem, LRState
+from parsers.lr.lr_types import LRAction, LREdge, LRItem, LRState, IndexedLREdge
 
 
 class LR0Parser(BaseParser):
@@ -12,7 +12,7 @@ class LR0Parser(BaseParser):
         super().__init__(styling=styling)
         self.eol = end_symbol
         self.states: dict[int, LRState] = dict()
-        self.edges: set[LREdge] = set()
+        self.edges: set[IndexedLREdge] = set()
 
     @cached_property
     def indexed_rules(self) -> dict[int, RuleType]:
@@ -97,7 +97,7 @@ class LR0Parser(BaseParser):
 
         self.states = {idx: state for idx, state in enumerate(t)}
         lookup = {v: k for k, v in self.states.items()}
-        self.edges = set(map(lambda x: x.convert_to_idx(lookup), e))
+        self.edges = set(map(lambda x: x.convert_to_indexed(lookup), e))
 
     @cached_property
     def symbols(self) -> set[str]:

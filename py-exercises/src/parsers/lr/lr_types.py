@@ -91,19 +91,32 @@ LRState = frozenset[LRItem]
 
 
 @dataclass(slots=True, frozen=True)
+class IndexedLREdge:
+    """
+    Stores connections between states: from and to states, in form of indexes, and
+    symbol on connection.
+    """
+
+    from_: int
+    to: int
+    symbol: str
+
+
+@dataclass(slots=True, frozen=True)
 class LREdge:
     """
     Stores states from and to indexes and symbol on the given edge. Also can store
     whole LRState inside, but it seems to be bad idea during parsing table building.
     """
 
-    from_: LRState | int
-    to: LRState | int
+    from_: LRState
+    to: LRState
     symbol: str
 
-    def convert_to_idx(self, lookup: Mapping[LRState, int]) -> LREdge:
+    def convert_to_indexed(self, lookup: Mapping[LRState, int]) -> IndexedLREdge:
         """
         Convert states in edge from whole objects to indexes.
         """
-        assert not (isinstance(self.from_, int) or isinstance(self.to, int))
-        return LREdge(from_=lookup[self.from_], to=lookup[self.to], symbol=self.symbol)
+        return IndexedLREdge(
+            from_=lookup[self.from_], to=lookup[self.to], symbol=self.symbol
+        )
