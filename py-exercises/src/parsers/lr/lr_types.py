@@ -88,6 +88,7 @@ class LRItem:
 
 
 LRState = frozenset[LRItem]
+LRParsingTable = dict[int, dict[str, set[LRAction]]]
 
 
 @dataclass(slots=True, frozen=True)

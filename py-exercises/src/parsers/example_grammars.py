@@ -29,3 +29,10 @@ GRAMMAR_3_20: list[str] = [
     "L -> S",
     "L -> L , S",
 ]
+
+GRAMMAR_3_23: list[str] = [
+    "S -> E $",
+    "E -> T + E",
+    "E -> T",
+    "T -> x",
+]

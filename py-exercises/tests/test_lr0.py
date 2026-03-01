@@ -1,6 +1,6 @@
 from parsers.lr.lr0 import LR0Parser
 from parsers.lr.lr_types import LRItem, LRState
-from parsers.example_grammars import GRAMMAR_3_20
+from parsers.example_grammars import GRAMMAR_3_20, GRAMMAR_3_23
 
 
 def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule():
@@ -100,3 +100,24 @@ def test_lr0_for_grammar_3_20_returns_valid_start_state():
             given_idx = idx
 
     assert p.get_starting_state_idx() == given_idx
+
+
+def test_lr0_for_grammar_3_23_returns_duplicate_entry_in_parsing_table() -> None:
+    # from figure 3.24, page 63 parsing table
+    # for plus symbol, we have one double entry, two with one action and three empty
+
+    p = LR0Parser()
+    p.add_rules(*GRAMMAR_3_23)
+
+    table = p.parsing_table
+
+    states_idxs = set(p.states.keys())
+
+    assert len(states_idxs) == 6
+
+    expected_double_entry_sym = "+"
+    all_sym_entries_len = [
+        len(table[idx][expected_double_entry_sym]) for idx in states_idxs
+    ]
+
+    assert sorted(all_sym_entries_len) == [0, 0, 0, 1, 1, 2]

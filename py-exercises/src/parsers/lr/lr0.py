@@ -4,7 +4,14 @@ from typing import Optional
 from functools import cached_property
 
 from parsers.base_parser import ParserPrintStyler, BaseParser, RuleType
-from parsers.lr.lr_types import LRAction, LREdge, LRItem, LRState, IndexedLREdge
+from parsers.lr.lr_types import (
+    LRAction,
+    LREdge,
+    LRItem,
+    LRState,
+    IndexedLREdge,
+    LRParsingTable,
+)
 
 
 class LR0Parser(BaseParser):
@@ -104,11 +111,18 @@ class LR0Parser(BaseParser):
         return self.terminals | self.non_terminals
 
     @cached_property
-    def parsing_table(self):
+    def parsing_table(self) -> LRParsingTable:
+        """
+        Returns parsing table for given grammar. Table is row-first, and the
+        first dict is representing the states number, dict inside it stores
+        symbols and actions mapping.
+        """
         self.compute_states_and_edges()
 
         rule_lookup = {r: i for i, r in self.indexed_rules.items()}
-        t = {i: {sym: set() for sym in self.symbols} for i in self.states.keys()}
+        t: LRParsingTable = {
+            i: {sym: set() for sym in self.symbols} for i in self.states.keys()
+        }
         for idx, i in self.states.items():
             for item in i:
                 if item.is_dot_at_end():
@@ -132,7 +146,7 @@ class LR0Parser(BaseParser):
         # columns in the same order like in book - first terminals
         headers = [*self.terminals, *self.non_terminals]
         for idx, row in self.parsing_table.items():
-            r = [idx]
+            r: list[int | str] = [idx]
             for col in headers:
                 r.append(self._table_cell2str(row[col]))
             list_table.append(r)
