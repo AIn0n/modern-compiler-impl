@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
 from collections import defaultdict
-from typing import NamedTuple
+from typing import NamedTuple, MutableMapping
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +38,47 @@ class BaseParser:
             styling = ParserPrintStyler()
         self.rules: set[RuleType] = set()
         self.styling = styling
+
+        self.nullables: set[str] = set()
+        self.first: MutableMapping[str, set[str]] = defaultdict(set)
+        self.follow: MutableMapping[str, set[str]] = defaultdict(set)
+
+    def _is_sequence_nullable(self, seq: tuple[str, ...]) -> bool:
+        if len(seq) == 0:
+            return True
+        return all(map(lambda x: x in self.nullables, seq))
+
+    def _count_first_follow_nullables(self) -> int:
+        return sum(
+            map(len, [self.nullables, *self.follow.values(), *self.first.values()])
+        )
+
+    def compute_first_follow_nullable(self, one_iteration: bool = False) -> None:
+        self.nullables = set()
+        self.follow = defaultdict(set)
+        self.first = defaultdict(set)
+
+        for terminal in self.terminals:
+            self.first[terminal] = set([terminal])
+
+        while True:
+            changed = self._count_first_follow_nullables()
+            for x, y in self.rules:
+                k = len(y)
+                if self._is_sequence_nullable(y):
+                    self.nullables.add(x)
+                for i in range(k):
+                    if self._is_sequence_nullable(y[0:i]):
+                        self.first[x] = self.first[x].union(self.first[y[i]])
+                    if self._is_sequence_nullable(y[i + 1 :]):
+                        self.follow[y[i]] = self.follow[y[i]].union(self.follow[x])
+                    for j in range(i + 1, k):
+                        if self._is_sequence_nullable(y[i + 1 : j]):
+                            self.follow[y[i]] = self.follow[y[i]].union(
+                                self.first[y[j]]
+                            )
+            if one_iteration or (changed == self._count_first_follow_nullables()):
+                break
 
     @cached_property
     def non_terminals(self) -> set[str]:
