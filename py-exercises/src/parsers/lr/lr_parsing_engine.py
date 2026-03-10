@@ -1,3 +1,5 @@
+from typing import Callable
+
 from parsers.lr.lr0 import LR0Parser
 from parsers.lr.slr import SLRParser
 from parsers.lr.lr_types import LRAction, LRActionEnum
@@ -7,7 +9,8 @@ class LREngine:
     def __init__(self, p: LR0Parser | SLRParser) -> None:
         self.indexed_rules = p.indexed_rules
         self.table = p.parsing_table
-        self.states: list[int] = [p.get_starting_state_idx()]
+        self.start_state = p.get_starting_state_idx()
+        self.states: list[int] = [self.start_state]
 
     def curr_state(self) -> int:
         return self.states[-1]
@@ -21,7 +24,8 @@ class LREngine:
         assert len(actions) == 1, f"{actions=}, {self.curr_state()=}, {sym=}"
         return [*actions][0]
 
-    def parse(self, input_: list[str]) -> dict:
+    def parse(self, input_: list[str], for_each_stack: Callable | None = None) -> dict:
+        self.states = [self.start_state]
         stack: list[str | dict] = []
         # states is stack of the states. The first element on it is starting state.
         # We will pop states accordingly to popping symbols during reduce.
@@ -29,6 +33,8 @@ class LREngine:
         while True:
             sym = input_[0]
             action = self.get_action(sym)
+            if for_each_stack is not None:
+                for_each_stack(stack)
 
             match action:
                 case LRAction(type_=LRActionEnum.ACCEPT):
