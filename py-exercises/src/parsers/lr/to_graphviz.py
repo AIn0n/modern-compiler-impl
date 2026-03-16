@@ -11,7 +11,7 @@ def lr_parser_to_graphviz(p: LR0Parser | SLRParser, title: Optional[str] = None)
         title = ""
     graph = pydot.Dot(title, graph_type="graph", bgcolor="white")
     for i, state in p.states.items():
-        graph.add_node(pydot.Node(str(i), label = state_to_str(state)))
+        graph.add_node(pydot.Node(str(i), label = state_to_str(state, linebreak="\n")))
     for edge in p.edges:
         dot_edge = pydot.Edge(str(edge.from_), str(edge.to), label=edge.symbol)
         graph.add_edge(dot_edge)
