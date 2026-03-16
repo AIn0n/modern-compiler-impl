@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 from dataclasses import dataclass
 from typing import Mapping, Optional
 
@@ -6,7 +6,7 @@ from parsers.base_parser import RuleType
 from parsers.commons import swap_with_next
 
 
-class LRActionEnum(Enum):
+class LRActionEnum(StrEnum):
     REDUCE = "r"
     GOTO = "g"
     SHIFT = "s"

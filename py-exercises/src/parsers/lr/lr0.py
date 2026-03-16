@@ -31,7 +31,7 @@ class LR0Parser(BaseParser):
         symbol at the end, by default let it be dollar sign, exactly like in the
         book
         """
-        start = [el for el in self.rules if el.rhs[-1] == self.eol]
+        start = [el for el in self.rules if len(el.rhs) and el.rhs[-1] == self.eol]
         # idk if that's valid or not,
         # it seems logical that grammar should not have two rules ending with
         # End of File, but who knows
