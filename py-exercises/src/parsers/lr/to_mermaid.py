@@ -3,15 +3,8 @@ from typing import Optional
 from mermaid.flowchart import Node, Link, FlowChart  # type: ignore[import-untyped]
 
 from parsers.lr.lr0 import LR0Parser
-from parsers.lr.lr_types import LRState
+from parsers.lr.commons import state_to_str
 
-
-def state_to_str(state: LRState) -> str:
-    res = ""
-    for el in state:
-        rule = el.rule
-        res += f"{rule.lhs} -> " + " ".join(rule.rhs) + "<br>"
-    return res
 
 
 def lr_parser_to_mermaid(p: LR0Parser, title: Optional[str] = None) -> FlowChart:

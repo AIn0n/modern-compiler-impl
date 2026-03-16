@@ -36,3 +36,12 @@ GRAMMAR_3_23: list[str] = [
     "E -> T",
     "T -> x",
 ]
+
+GRAMMAR_3_26: list[str] = [
+    "S` -> S $",
+    "S -> V = E",
+    "E -> V",
+    "V -> x",
+    "S -> E",
+    "V -> * E",
+]
