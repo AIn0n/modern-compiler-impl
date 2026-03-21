@@ -6,7 +6,6 @@ from parsers.lr.lr0 import LR0Parser
 from parsers.lr.commons import state_to_str
 
 
-
 def lr_parser_to_mermaid(p: LR0Parser, title: Optional[str] = None) -> FlowChart:
     if title is None:
         title = ""

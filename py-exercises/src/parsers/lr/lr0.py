@@ -15,7 +15,9 @@ from parsers.lr.lr_types import (
 
 
 class LR0Parser(BaseParser):
-    def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
+    def __init__(
+        self, styling: Optional[ParserPrintStyler] = None, end_symbol: str = "$"
+    ):
         super().__init__(styling=styling)
         self.eol = end_symbol
         self.states: dict[int, LRState] = dict()
