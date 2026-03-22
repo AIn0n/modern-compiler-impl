@@ -43,6 +43,13 @@ class BaseParser:
         self.first: MutableMapping[str, set[str]] = defaultdict(set)
         self.follow: MutableMapping[str, set[str]] = defaultdict(set)
 
+    def first_rhs(self, y: tuple[str, ...]) -> set[str]:
+        if len(y) == 0:
+            return set()
+        if y[0] in self.nullables:
+            return self.first[y[0]].union(self.first_rhs(y[1:]))
+        return self.first[y[0]]
+
     def _is_sequence_nullable(self, seq: tuple[str, ...]) -> bool:
         if len(seq) == 0:
             return True

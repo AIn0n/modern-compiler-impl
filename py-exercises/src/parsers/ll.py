@@ -11,13 +11,6 @@ class LL1Parser(BaseParser):
     def __init__(self, styling: ParserPrintStyler | None = None) -> None:
         super().__init__(styling=styling)
 
-    def first_rhs(self, y: tuple[str, ...]) -> set[str]:
-        if len(y) == 0:
-            return set()
-        if y[0] in self.nullables:
-            return self.first[y[0]].union(self.first_rhs(y[1:]))
-        return self.first[y[0]]
-
     def nullable_rhs(self, y: list[str]) -> bool:
         return (not len(y)) or all(map(lambda x: x in self.nullables, y))
 
