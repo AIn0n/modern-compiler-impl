@@ -41,35 +41,67 @@ void yyerror(char *s)
 
 program: exp ;
 
-exp:  STRING
-   |  INT
-   |  NIL
-   |  lvalue
-   |  MINUS exp         /* binary operators */
-   |  exp PLUS exp
-   |  exp MINUS exp
-   |  exp TIMES exp
-   |  exp DIVIDE exp
-   |  exp EQ exp
-   |  exp NEQ exp
-   |  exp LT exp
-   |  exp LE exp
-   |  exp GT exp
-   |  exp GE exp
-   |  exp AND exp
-   |  exp OR exp
-   |  lvalue ASSIGN exp
-   |  ID LPAREN opt_exp_list RPAREN
-   |  LPAREN exp_seq RPAREN
-   |  type_id LBRACE field_list RBRACE
-   |  type_id LBRACK exp RBRACK OF exp
-   |  IF exp THEN exp
-   |  IF exp THEN exp ELSE exp
-   |  WHILE exp DO exp
-   |  FOR ID ASSIGN exp TO exp DO exp
-   |  BREAK
-   |  LET declaration_list IN exp_seq END
-   ;
+logical_op : comparison_op logical_op_aux ;
+
+logical_op_aux  :   OR comparison_op logical_op_aux
+                |   AND comparison_op logical_op_aux
+                |
+                ;
+
+comparison_op : addition_op comparison_op_aux ;
+
+comparison_op_aux   :   NEQ addition_op comparison_op_aux
+                    |   EQ addition_op comparison_op_aux
+                    |   LT addition_op comparison_op_aux
+                    |   LE addition_op comparison_op_aux
+                    |   GT addition_op comparison_op_aux
+                    |   GE addition_op comparison_op_aux
+                    |
+                    ;
+
+addition_op : multiply_op addition_op_aux ;
+
+addition_op_aux :   PLUS multiply_op addition_op_aux
+                |   MINUS multiply_op addition_op_aux
+                |
+                ;
+
+multiply_op : unary_op multiply_op_aux ;
+
+multiply_op_aux :   TIMES unary_op multiply_op_aux
+                |   DIVIDE unary_op multiply_op_aux
+                |
+                ;
+
+unary_op:   MINUS singleton_op
+        |   singleton_op
+        ;
+
+singleton_op:   STRING
+            |   INT
+            |   NIL
+            |   lvalue
+            |   ID LPAREN opt_exp_list RPAREN
+            ;
+
+exp :   lvalue ASSIGN exp
+    |   logical_op
+    |   LPAREN exp_seq RPAREN
+    |   ID LBRACE field_list RBRACE
+    |   built_in_types LBRACE field_list RBRACE
+    |   ID LBRACK exp RBRACK OF exp
+    |   built_in_types LBRACK exp RBRACK OF exp
+    |   if_then
+    |   if_then_else
+    |   WHILE exp DO exp
+    |   FOR ID ASSIGN exp TO exp DO exp
+    |   BREAK
+    |   LET declaration_list IN exp_seq END
+    ;
+
+if_then : IF exp THEN exp ;
+if_then_else : IF exp THEN exp ELSE exp ;
+
 
 opt_exp_list: exp_list
             |
@@ -87,10 +119,12 @@ field_list  :   ID EQ exp
             |   field_list COMMA ID EQ exp
             ;
 
-lvalue  :   ID
-        |   lvalue DOT ID
-        |   lvalue LBRACK exp RBRACK
-        ;
+lvalue : ID lvalue_aux ;
+
+lvalue_aux  :   DOT ID lvalue_aux
+            |   LBRACK exp RBRACK lvalue_aux
+            |
+            ;
 
 declaration_list:   declaration
                 |   declaration_list declaration
@@ -101,28 +135,31 @@ declaration :   type_declaration
             |   func_declaration
             ;
 
-type_declaration: TYPE type_id EQ type ;
+type_declaration:   TYPE ID EQ type
+                |   TYPE built_in_types EQ type ;
 
-type:   type_id
+type:   ID
+    |   built_in_types
     |   LBRACE type_fields RBRACE
-    |   ARRAY OF type_id
+    |   ARRAY OF ID
+    |   ARRAY OF built_in_types
     ;
 
 type_fields :   type_field
             |   type_fields COMMA type_field
             ;
 
-type_field: ID COLON type_id ;
+type_field  :   ID COLON ID
+            |   ID COLON built_in_types ;
 
 variable_declaration:   VAR ID ASSIGN exp
-                    |   VAR ID COLON type_id ASSIGN exp
+                    |   VAR ID COLON ID ASSIGN exp
+                    |   VAR ID COLON built_in_types ASSIGN exp
                     ;
 
 func_declaration:   FUNCTION ID LPAREN type_fields RPAREN EQ exp
-                |   FUNCTION ID LPAREN type_fields RPAREN COLON type_id EQ exp
+                |   FUNCTION ID LPAREN type_fields RPAREN COLON ID EQ exp
+                |   FUNCTION ID LPAREN type_fields RPAREN COLON built_in_types EQ exp
                 ;
 
-type_id :   ID
-        |   INT
-        |   STRING
-        ;
+built_in_types : INT | STRING ;
