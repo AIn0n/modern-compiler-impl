@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from parsers.base_parser import ParserPrintStyler, RuleType
-from parsers.lr.lr0 import LR0Parser
+from parsers.lr.lr0 import LRBaseParser
 
 
 @dataclass(slots=True, frozen=True)
@@ -22,7 +22,7 @@ class LR1Item:
     # dot_pos = 1
     # and so on...
     dot_pos: int
-    lookahead: str
+    lookahead: str | None
 
     def peek_after_dot(self) -> str | None:
         if self.dot_pos >= len(self.rule.rhs):
@@ -38,7 +38,7 @@ class LR1Item:
 LR1State = frozenset[LR1Item]
 
 
-class LR1Parser(LR0Parser):
+class LR1Parser(LRBaseParser[LR1State]):
     def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
         super().__init__(styling=styling, end_symbol=end_symbol)
 
@@ -57,22 +57,12 @@ class LR1Parser(LR0Parser):
                     if rule.lhs != x:
                         continue
                     # omitting X, getting all the elements after it
-                    b = item.rule.rhs[item.dot_pos + 1:]
+                    b = item.rule.rhs[item.dot_pos + 1 :]
                     z = item.lookahead
-                    for w in self.first_rhs((*b, z)):
+                    col = b if z is None else (*b, z)
+                    for w in self.first_rhs(col):
                         new_i.add(LR1Item(rule=rule, dot_pos=0, lookahead=w))
             if len(new_i) == len(i):
                 break
             i = frozenset(new_i)
         return frozenset(i)
-
-    def compute_states_and_edges(self) -> None:
-        start_rule = self.get_start_rule()
-        start_closure = self.closure(
-            frozenset([LR1Item(
-                rule=start_rule,
-                dot_pos=0,
-                lookahead="?"
-            )])
-        )
-        t: set[LR1State] = set([start_closure])
