@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from parsers.base_parser import ParserPrintStyler, RuleType
-from parsers.lr.lr0 import LRBaseParser
+from parsers.lr.lr0 import LR0Parser
 
 
 @dataclass(slots=True, frozen=True)
@@ -34,19 +34,26 @@ class LR1Item:
             rule=self.rule, dot_pos=self.dot_pos + 1, lookahead=self.lookahead
         )
 
+    def is_dot_at_end(self) -> bool:
+        return self.dot_pos == len(self.rule.rhs)
+
+    def to_rule(self) -> RuleType:
+        return self.rule
+
 
 LR1State = frozenset[LR1Item]
 
 
-class LR1Parser(LRBaseParser[LR1State]):
+class LR1Parser(LR0Parser):
+    # TODO: Add compute first follow and nullables into the compute states and edges function
     def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
         super().__init__(styling=styling, end_symbol=end_symbol)
 
-    def goto(self, i: LR1State, x: str) -> LR1State:
+    def goto(self, i: LR1State, x: str) -> LR1State:  # type: ignore[override]
         j = frozenset([el.advance_dot() for el in i if el.peek_after_dot() == x])
         return self.closure(j)
 
-    def closure(self, i: LR1State) -> LR1State:
+    def closure(self, i: LR1State) -> LR1State:  # type: ignore[override]
         while True:
             new_i: set[LR1Item] = set(i)
             for item in i:
@@ -66,3 +73,33 @@ class LR1Parser(LRBaseParser[LR1State]):
                 break
             i = frozenset(new_i)
         return frozenset(i)
+
+    def get_start_states(self):
+        start_rule = self.get_start_rule()
+        return set(
+            [
+                self.closure(
+                    frozenset([LR1Item(rule=start_rule, dot_pos=0, lookahead=None)])
+                )
+            ]
+        )
+
+    def compute_states_and_edges(self):
+        self.compute_first_follow_nullable()
+        return super().compute_states_and_edges()
+
+
+if __name__ == "__main__":
+    grammar_ex_3_7 = [
+        "S -> G $",
+        "G -> P",
+        "G -> P G",
+        "P -> id : R",
+        "R -> id R",
+        "R -> ",
+    ]
+
+    parser = LR1Parser()
+    parser.add_rules(*grammar_ex_3_7)
+    parser.compute_states_and_edges()
+    print(parser.to_tabulate())

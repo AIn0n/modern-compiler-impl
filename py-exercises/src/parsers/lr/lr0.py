@@ -75,13 +75,20 @@ class LR0Parser(BaseParser):
 
         assert False
 
-    def compute_states_and_edges(self) -> None:
-        # first state is just starting rule (one with terminal symbol at end)
-        # converted into LR item - rule with dot representing current position
-        # at given rule
+    def get_start_states(self) -> set[LRState]:
+        """
+        Built state set to start computing states and edges.
+
+        first state is just starting rule (one with terminal symbol at end)
+        converted into LR item - rule with dot representing current position
+        at given rule
+        """
         start_rule = self.get_start_rule()
+        return set([self.closure(frozenset([LRItem.from_rule(start_rule)]))])
+
+    def compute_states_and_edges(self) -> None:
         # state collection
-        t: set[LRState] = set([self.closure(frozenset([LRItem.from_rule(start_rule)]))])
+        t: set[LRState] = self.get_start_states()
         # edges collection
         e: set[LREdge] = set()
         while True:
