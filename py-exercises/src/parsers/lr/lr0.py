@@ -161,3 +161,15 @@ class LR0Parser(BaseParser):
             list_table.append(r)
 
         return tabulate(list_table, headers=[""] + headers, tablefmt="simple_grid")
+
+    def print_rules_and_states(self) -> None:
+        print("---=== Rules ===---")
+        for idx, rule in self.indexed_rules.items():
+            print(f"{idx:04} {rule}")
+
+        print("\n---=== States ===---")
+        for idx, state in self.states.items():
+            print(f"state {idx}")
+
+            for item in state:
+                print(f"\t {item}")
