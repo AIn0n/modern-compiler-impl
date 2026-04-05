@@ -136,3 +136,9 @@ def lr_state_to_str(
     for item in state:
         res += f"{prefix}{item}{linebreak}"
     return res
+
+
+def are_states_equal_wo_lookahead(first: LRState, second: LRState) -> bool:
+    first_set = frozenset((el.rule, el.dot_pos) for el in first)
+    second_set = frozenset((el.rule, el.dot_pos) for el in second)
+    return first_set == second_set
