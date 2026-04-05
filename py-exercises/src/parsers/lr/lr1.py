@@ -2,7 +2,14 @@ from functools import cached_property
 
 from parsers.base_parser import ParserPrintStyler
 from parsers.lr.lr0 import LR0Parser
-from parsers.lr.lr_types import LRParsingTable, LRAction, LRItem, LRState
+from parsers.lr.lr_types import (
+    LRParsingTable,
+    LRAction,
+    LRItem,
+    LRState,
+    are_states_equal_wo_lookahead,
+    IndexedLREdge,
+)
 
 
 class LR1Parser(LR0Parser):
@@ -72,6 +79,27 @@ class LR1Parser(LR0Parser):
             t[edge.from_][edge.symbol].add(action(edge.to))
 
         return t
+
+    def to_lalr(self) -> LR1Parser:
+        mapping: dict[int, int] = dict()
+
+        len_states = len(self.states)
+        for fidx in range(len_states):
+            for sidx in range(fidx + 1, len_states):
+                if are_states_equal_wo_lookahead(self.states[fidx], self.states[sidx]):
+                    mapping[sidx] = fidx
+
+        new_edges = set()
+        for edge in self.edges:
+            if (new_idx := mapping.get(edge.to)) is not None:
+                new_edges.add(IndexedLREdge(from_=edge.from_, to=new_idx, symbol=edge.symbol))
+            else:
+                new_edges.add(edge)
+
+        self.edges = new_edges
+        self.states = {k: v for k, v in self.states.items() if k not in mapping.keys()}
+
+        return self
 
 
 if __name__ == "__main__":
