@@ -3,7 +3,7 @@ from parsers.lr.lr_types import LRActionEnum
 from parsers.example_grammars import GRAMMAR_3_23
 
 
-def test_for_grammar_3_23_SLR_parser_returns_non_conflicted_table():
+def test_for_grammar_3_23_SLR_parser_returns_non_conflicted_table() -> None:
     p = SLRParser()
     p.add_rules(*GRAMMAR_3_23)
 
@@ -13,7 +13,7 @@ def test_for_grammar_3_23_SLR_parser_returns_non_conflicted_table():
             assert len(t[state][sym]) <= 1
 
 
-def test_for_grammar_3_23_SLR_parser_return_one_or_more_reduce_actions():
+def test_for_grammar_3_23_SLR_parser_return_one_or_more_reduce_actions() -> None:
     p = SLRParser()
     p.add_rules(*GRAMMAR_3_23)
 

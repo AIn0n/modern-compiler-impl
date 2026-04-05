@@ -1,9 +1,8 @@
 from enum import StrEnum
 from dataclasses import dataclass
-from typing import Mapping, Optional
+from typing import Mapping
 
 from parsers.base_parser import RuleType
-from parsers.commons import swap_with_next
 
 
 class LRActionEnum(StrEnum):
@@ -43,48 +42,53 @@ class LRAction:
 @dataclass(slots=True, frozen=True)
 class LRItem:
     rule: RuleType
-    dot_idx: int
+    # Assume 0 dot_pos is dot on the beginning of rhs
+    # R -> . A B C
+    # dot_pos = 0
+    # R -> A . B C
+    # dot_pos = 1
+    # and so on...
+    dot_pos: int
+    lookahead: str | None = None
 
-    def peek_after_dot(self) -> Optional[str]:
-        """
-        Get the first symbol (next to) after the dot. This method is beneficial
-        for closure in LR parser. Return None if there's no symbol after the dot.
-        """
-        next_idx = self.dot_idx + 1
-        return None if next_idx >= len(self.rule.rhs) else self.rule.rhs[next_idx]
+    def peek_after_dot(self) -> str | None:
+        if self.dot_pos >= len(self.rule.rhs):
+            return None
+        return self.rule.rhs[self.dot_pos]
 
     def advance_dot(self) -> LRItem:
-        """
-        Return the copy of the class, with dot moved one position to the right.
-        """
-        # swap dot with next element after it
-        new_rhs = swap_with_next(self.rule.rhs, self.dot_idx)
-
         return LRItem(
-            rule=RuleType(lhs=self.rule.lhs, rhs=new_rhs), dot_idx=self.dot_idx + 1
+            rule=self.rule, dot_pos=self.dot_pos + 1, lookahead=self.lookahead
         )
 
     def is_dot_at_end(self) -> bool:
-        return self.dot_idx == len(self.rule.rhs) - 1
+        return self.dot_pos == len(self.rule.rhs)
 
     def to_rule(self) -> RuleType:
-        """
-        Get simple rule from given item - just by removing the dot.
-        """
-        return RuleType(
-            lhs=self.rule.lhs, rhs=tuple(el for el in self.rule.rhs if el != ".")
-        )
+        return self.rule
+
+    def __str__(self) -> str:
+        pre_dot = self.rule.rhs[: self.dot_pos]
+        post_dot = self.rule.rhs[self.dot_pos :]
+        res = f"{self.rule.lhs} -> " + " ".join([*pre_dot, ".", *post_dot])
+        if self.lookahead is not None:
+            res += f" ({self.lookahead})"
+
+        return res
 
     @staticmethod
-    def from_rule(rule: RuleType) -> LRItem:
+    def from_ruletype(rule: RuleType) -> LRItem:
         """
         Turn rule into LR item, by default setting the dot at the first position
         on left-hand side.
         """
-        return LRItem(rule=RuleType(rule.lhs, tuple([".", *rule.rhs])), dot_idx=0)
+        return LRItem(rule=rule, dot_pos=0, lookahead=None)
 
-    def __str__(self) -> str:
-        return str(self.rule)
+    @staticmethod
+    def from_rule_str(rule: str, dot_pos: int = 0, lookahead: str | None = None):
+        return LRItem(
+            rule=RuleType.from_str(rule), dot_pos=dot_pos, lookahead=lookahead
+        )
 
 
 LRState = frozenset[LRItem]
@@ -121,3 +125,14 @@ class LREdge:
         return IndexedLREdge(
             from_=lookup[self.from_], to=lookup[self.to], symbol=self.symbol
         )
+
+
+def lr_state_to_str(
+    state: LRState, prefix: str | None = None, linebreak: str = "\n"
+) -> str:
+    if prefix is None:
+        prefix = ""
+    res = ""
+    for item in state:
+        res += f"{prefix}{item}{linebreak}"
+    return res

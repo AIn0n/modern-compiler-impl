@@ -3,18 +3,18 @@ from parsers.lr.lr_types import LRItem, LRState
 from parsers.example_grammars import GRAMMAR_3_20, GRAMMAR_3_23
 
 
-def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule():
+def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule() -> None:
     # figure 3.21, page 62
     expected_items = [
-        LRItem(rule=("S'", (".", "S", "$")), dot_idx=0),
-        LRItem(rule=("S", (".", "(", "L", ")")), dot_idx=0),
-        LRItem(rule=("S", (".", "x")), dot_idx=0),
+        LRItem.from_rule_str("S' -> S $", dot_pos=0),
+        LRItem.from_rule_str("S -> ( L )", dot_pos=0),
+        LRItem.from_rule_str("S -> x", dot_pos=0),
     ]
 
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
-    given_items = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
+    given_items = p.closure(frozenset([LRItem.from_ruletype(p.get_start_rule())]))
 
     assert len(expected_items) == len(given_items)
 
@@ -22,37 +22,21 @@ def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule():
         assert item in given_items
 
 
-def test_goto_given_grammar_3_20_returns_valid_set():
+def test_goto_given_grammar_3_20_returns_valid_set() -> None:
     # same as above, figure 3.21, page 62
     # fmt: off
     expected_items = [
-        LRItem(
-            rule=("S", ("(", ".", "L", ")")),
-            dot_idx=1
-        ),
-        LRItem(
-            rule=("L", (".", "S")),
-            dot_idx=0
-        ),
-        LRItem(
-            rule=("L", (".", "L", ",", "S")),
-            dot_idx=0
-        ),
-        LRItem(
-            rule=("S", (".", "(", "L", ")")),
-            dot_idx=0
-        ),
-        LRItem(
-            rule=("S", (".", "x")),
-            dot_idx=0
-        ),
+        LRItem.from_rule_str("S -> ( L )", dot_pos=1),
+        LRItem.from_rule_str("L -> S", dot_pos=0),
+        LRItem.from_rule_str("L -> L , S", dot_pos=0),
+        LRItem.from_rule_str("S -> ( L )", dot_pos=0),
+        LRItem.from_rule_str("S -> x", dot_pos=0)
     ]
-    # fmt: on
 
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
-    first_closure = p.closure(set([LRItem.from_rule(p.get_start_rule())]))
+    first_closure = p.closure(frozenset([LRItem.from_ruletype(p.get_start_rule())]))
     given_items = p.goto(first_closure, "(")
 
     for item in expected_items:
@@ -61,7 +45,7 @@ def test_goto_given_grammar_3_20_returns_valid_set():
     assert len(expected_items) == len(given_items)
 
 
-def test_lr0_for_grammar_3_20_returns_9_unique_states():
+def test_lr0_for_grammar_3_20_returns_9_unique_states() -> None:
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
@@ -70,7 +54,7 @@ def test_lr0_for_grammar_3_20_returns_9_unique_states():
     assert len(p.states) == 9
 
 
-def test_lr0_for_grammar_3_20_returns_12_state_edges():
+def test_lr0_for_grammar_3_20_returns_12_state_edges() -> None:
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
@@ -79,7 +63,7 @@ def test_lr0_for_grammar_3_20_returns_12_state_edges():
     assert len(p.edges) == 12
 
 
-def test_lr0_for_grammar_3_20_returns_valid_start_state():
+def test_lr0_for_grammar_3_20_returns_valid_start_state() -> None:
     p = LR0Parser()
     p.add_rules(*GRAMMAR_3_20)
 
@@ -87,9 +71,9 @@ def test_lr0_for_grammar_3_20_returns_valid_start_state():
     # figure 3.21, page 62
     expected_start_state: LRState = frozenset(
         [
-            LRItem(rule=("S'", (".", "S", "$")), dot_idx=0),
-            LRItem(rule=("S", (".", "(", "L", ")")), dot_idx=0),
-            LRItem(rule=("S", (".", "x")), dot_idx=0),
+            LRItem.from_rule_str("S' -> S $", dot_pos=0),
+            LRItem.from_rule_str("S -> ( L )", dot_pos=0),
+            LRItem.from_rule_str("S -> x", dot_pos=0),
         ]
     )
     assert expected_start_state in p.states.values()

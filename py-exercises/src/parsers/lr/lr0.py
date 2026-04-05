@@ -11,6 +11,7 @@ from parsers.lr.lr_types import (
     LRState,
     IndexedLREdge,
     LRParsingTable,
+    lr_state_to_str,
 )
 
 
@@ -55,7 +56,7 @@ class LR0Parser(BaseParser):
                     # check lhs
                     if rule.lhs != x:
                         continue
-                    new_i.add(LRItem.from_rule(rule))
+                    new_i.add(LRItem.from_ruletype(rule))
             # break when I does not change
             if len(new_i) == len(i):
                 break
@@ -68,7 +69,7 @@ class LR0Parser(BaseParser):
         return self.closure(j)
 
     def get_starting_state_idx(self) -> int:
-        start_item = LRItem.from_rule(self.get_start_rule())
+        start_item = LRItem.from_ruletype(self.get_start_rule())
         for idx, state in self.states.items():
             if start_item in state:
                 return idx
@@ -84,7 +85,7 @@ class LR0Parser(BaseParser):
         at given rule
         """
         start_rule = self.get_start_rule()
-        return set([self.closure(frozenset([LRItem.from_rule(start_rule)]))])
+        return set([self.closure(frozenset([LRItem.from_ruletype(start_rule)]))])
 
     def compute_states_and_edges(self) -> None:
         # state collection
@@ -171,6 +172,4 @@ class LR0Parser(BaseParser):
         print("\n---=== States ===---")
         for idx, state in self.states.items():
             print(f"state {idx}")
-
-            for item in state:
-                print(f"\t {item}")
+            print(lr_state_to_str(state, "    "))
