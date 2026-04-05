@@ -17,13 +17,14 @@ class SLRParser(LR0Parser):
         self.compute_first_follow_nullable()
 
         rule_lookup = {r: i for i, r in self.indexed_rules.items()}
-        t: LRParsingTable = {
-            i: {sym: set() for sym in self.symbols} for i in self.states.keys()
-        }
+        t: LRParsingTable = self._init_parsing_table()
         for idx, i in self.states.items():
             for item in i:
                 if item.is_dot_at_end():
                     rule_idx = rule_lookup[item.to_rule()]
+                    # main difference from LR(0) here - we reduce based on
+                    # what's follows the rule
+                    # page 63
                     for non_term in self.follow[item.rule.lhs]:
                         t[idx][non_term].add(LRAction.reduce(rule_idx))
                 if item.peek_after_dot() == self.eol:

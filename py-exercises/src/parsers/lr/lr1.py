@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from functools import cached_property
 
 from parsers.base_parser import ParserPrintStyler, RuleType
 from parsers.lr.lr0 import LR0Parser
+from parsers.lr.lr_types import LRParsingTable, LRAction
 
 
 @dataclass(slots=True, frozen=True)
@@ -93,9 +95,34 @@ class LR1Parser(LR0Parser):
             ]
         )
 
-    def compute_states_and_edges(self):
+    @cached_property
+    def parsing_table(self) -> LRParsingTable:
+        """
+        Returns parsing table for given grammar. Table is row-first, and the
+        first dict is representing the states number, dict inside it stores
+        symbols and actions mapping.
+        """
         self.compute_first_follow_nullable()
-        return super().compute_states_and_edges()
+        self.compute_states_and_edges()
+
+        rule_lookup = {r: i for i, r in self.indexed_rules.items()}
+        t: LRParsingTable = self._init_parsing_table()
+        for idx, i in self.states.items():
+            for item in i:
+                if item.is_dot_at_end():
+                    # main difference from SLR here - we reduce based on
+                    # already computed lookahead values
+                    # page 64
+                    rule_idx = rule_lookup[item.to_rule()]
+                    t[idx][item.lookahead].add(LRAction.reduce(rule_idx))
+                if item.peek_after_dot() == self.eol:
+                    t[idx][self.eol].add(LRAction.accept())
+
+        for edge in self.edges:
+            action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
+            t[edge.from_][edge.symbol].add(action(edge.to))
+
+        return t
 
 
 if __name__ == "__main__":

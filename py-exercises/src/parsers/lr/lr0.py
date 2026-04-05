@@ -119,6 +119,9 @@ class LR0Parser(BaseParser):
     def symbols(self) -> set[str]:
         return self.terminals | self.non_terminals
 
+    def _init_parsing_table(self) -> LRParsingTable:
+        return {i: {sym: set() for sym in self.symbols} for i in self.states.keys()}
+
     @cached_property
     def parsing_table(self) -> LRParsingTable:
         """
@@ -129,9 +132,7 @@ class LR0Parser(BaseParser):
         self.compute_states_and_edges()
 
         rule_lookup = {r: i for i, r in self.indexed_rules.items()}
-        t: LRParsingTable = {
-            i: {sym: set() for sym in self.symbols} for i in self.states.keys()
-        }
+        t: LRParsingTable = self._init_parsing_table()
         for idx, i in self.states.items():
             for item in i:
                 if item.is_dot_at_end():
