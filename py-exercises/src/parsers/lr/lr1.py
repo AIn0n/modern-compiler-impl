@@ -13,8 +13,13 @@ from parsers.lr.lr_types import (
 
 
 class LR1Parser(LR0Parser):
-    def __init__(self, styling: ParserPrintStyler | None = None, end_symbol: str = "$"):
-        super().__init__(styling=styling, end_symbol=end_symbol)
+    def __init__(
+        self,
+        *rules: str,
+        styling: ParserPrintStyler | None = None,
+        end_symbol: str = "$",
+    ):
+        super().__init__(*rules, styling=styling, end_symbol=end_symbol)
 
     def goto(self, i: LRState, x: str) -> LRState:  # type: ignore[override]
         j = frozenset([el.advance_dot() for el in i if el.peek_after_dot() == x])
@@ -58,8 +63,6 @@ class LR1Parser(LR0Parser):
         first dict is representing the states number, dict inside it stores
         symbols and actions mapping.
         """
-        self.compute_first_follow_nullable()
-        self.compute_states_and_edges()
 
         rule_lookup = {r: i for i, r in self.indexed_rules.items()}
         t: LRParsingTable = self._init_parsing_table()
@@ -111,7 +114,5 @@ if __name__ == "__main__":
         "R -> ",
     ]
 
-    parser = LR1Parser()
-    parser.add_rules(*grammar_ex_3_7)
-    parser.compute_states_and_edges()
+    parser = LR1Parser(*grammar_ex_3_7)
     print(parser.to_tabulate())

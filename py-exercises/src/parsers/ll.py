@@ -8,16 +8,15 @@ from tabulate import tabulate
 
 
 class LL1Parser(BaseParser):
-    def __init__(self, styling: ParserPrintStyler | None = None) -> None:
-        super().__init__(styling=styling)
+    def __init__(self, *rules: str, styling: ParserPrintStyler | None = None) -> None:
+        super().__init__(*rules, styling=styling)
+        self.compute_first_follow_nullable()
 
     def nullable_rhs(self, y: list[str]) -> bool:
         return (not len(y)) or all(map(lambda x: x in self.nullables, y))
 
     @cached_property
     def parsing_table(self):
-        self.compute_first_follow_nullable()
-
         table = defaultdict(lambda: defaultdict(set))
 
         for x, y in self.rules:
@@ -35,7 +34,7 @@ class LL1Parser(BaseParser):
         line = [f"{x} -> {self._rhs2str(y)}" for _, y in self.parsing_table[x][t]]
         return "\n".join(line)
 
-    def get_tabulate(self, fmt: str = "simple_grid") -> str:
+    def to_tabulate(self, fmt: str = "simple_grid") -> str:
         rows = sorted(self.non_terminals)
         cols = sorted(list(self.terminals))
 
@@ -48,9 +47,7 @@ class LL1Parser(BaseParser):
 
 if __name__ == "__main__":
     # Example from grammar 3.12
-    p = LL1Parser()
-    p.add_rules(*GRAMMAR_3_12)
-    p.compute_first_follow_nullable(one_iteration=False)
+    p = LL1Parser(*GRAMMAR_3_12)
     non_terminals = p.non_terminals
     print(f"{non_terminals=}")
     print(f"{p.nullables=}")
@@ -59,4 +56,4 @@ if __name__ == "__main__":
     interesting_follows = {k: v for k, v in p.follow.items() if k in non_terminals}
     print(f"{interesting_follows=}")
     p.parsing_table
-    print(f"{p.get_tabulate()}")
+    print(f"{p.to_tabulate()}")

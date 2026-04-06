@@ -33,15 +33,16 @@ class BaseParser:
     printing styling, etc.
     """
 
-    def __init__(self, styling: ParserPrintStyler | None = None) -> None:
+    def __init__(self, *rules: str, styling: ParserPrintStyler | None = None) -> None:
         if styling is None:
             styling = ParserPrintStyler()
-        self.rules: set[RuleType] = set()
+        self.rules: set[RuleType] = set(RuleType.from_str(el) for el in rules)
         self.styling = styling
 
         self.nullables: set[str] = set()
         self.first: MutableMapping[str, set[str]] = defaultdict(set)
         self.follow: MutableMapping[str, set[str]] = defaultdict(set)
+        self.compute_first_follow_nullable()
 
     def first_rhs(self, y: tuple[str, ...]) -> set[str]:
         if len(y) == 0:
@@ -96,17 +97,6 @@ class BaseParser:
         all_rhs_symbols = set(chain.from_iterable([el.rhs for el in self.rules]))
         # everything from the rules, except right hands side
         return all_rhs_symbols - self.non_terminals
-
-    def add_rule(self, rule: str) -> None:
-        """
-        Parse rule from simple string, to tuple, with first element
-        non-terminal, and second tuple of strings.
-        """
-        self.rules.add(RuleType.from_str(rule))
-
-    def add_rules(self, *rules) -> None:
-        for rule in rules:
-            self.add_rule(rule)
 
     def _rhs2str(self, rhs: tuple[str, ...]) -> str:
         return " ".join(rhs) if len(rhs) else self.styling.epsilon

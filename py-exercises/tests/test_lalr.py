@@ -55,8 +55,7 @@ def test_given_two_same_states_with_other_lookahead_compare_return_true() -> Non
 
 
 def test_given_grammar_3_26_when_converted_to_lalr_return_valid_num_of_states() -> None:
-    parser = LR1Parser()
-    parser.add_rules(*GRAMMAR_3_26)
+    parser = LR1Parser(*GRAMMAR_3_26)
     parser.parsing_table
 
     expected_count_LR1 = 14
@@ -70,8 +69,7 @@ def test_given_grammar_3_26_when_converted_to_lalr_return_valid_num_of_states() 
 
 
 def test_grammar_3_26_converted_to_lalr_returns_no_conflict() -> None:
-    parser = LR1Parser()
-    parser.add_rules(*GRAMMAR_3_26)
+    parser = LR1Parser(*GRAMMAR_3_26)
     parser.parsing_table
     parser.to_lalr()
 

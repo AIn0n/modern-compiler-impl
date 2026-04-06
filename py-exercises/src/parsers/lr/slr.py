@@ -2,7 +2,6 @@ from functools import cached_property
 
 from parsers.lr.lr_types import LRParsingTable, LRAction
 from parsers.lr.lr0 import LR0Parser
-from parsers.example_grammars import GRAMMAR_3_23
 
 
 class SLRParser(LR0Parser):
@@ -13,8 +12,6 @@ class SLRParser(LR0Parser):
         first dict is representing the states number, dict inside it stores
         symbols and actions mapping.
         """
-        self.compute_states_and_edges()
-        self.compute_first_follow_nullable()
 
         rule_lookup = {r: i for i, r in self.indexed_rules.items()}
         t: LRParsingTable = self._init_parsing_table()
@@ -32,9 +29,3 @@ class SLRParser(LR0Parser):
 
         self._add_edges_to_parsing_table(t)
         return t
-
-
-if __name__ == "__main__":
-    p = SLRParser()
-    p.add_rules(*GRAMMAR_3_23)
-    print(p.to_tabulate())

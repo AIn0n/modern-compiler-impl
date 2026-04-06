@@ -4,8 +4,7 @@ from parsers.example_grammars import GRAMMAR_3_23
 
 
 def test_for_grammar_3_23_SLR_parser_returns_non_conflicted_table() -> None:
-    p = SLRParser()
-    p.add_rules(*GRAMMAR_3_23)
+    p = SLRParser(*GRAMMAR_3_23)
 
     t = p.parsing_table
     for state in p.states.keys():
@@ -14,8 +13,7 @@ def test_for_grammar_3_23_SLR_parser_returns_non_conflicted_table() -> None:
 
 
 def test_for_grammar_3_23_SLR_parser_return_one_or_more_reduce_actions() -> None:
-    p = SLRParser()
-    p.add_rules(*GRAMMAR_3_23)
+    p = SLRParser(*GRAMMAR_3_23)
 
     t = p.parsing_table
     count = 0

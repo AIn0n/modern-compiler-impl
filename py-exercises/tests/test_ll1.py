@@ -1,18 +1,9 @@
 from parsers.ll import LL1Parser
 from parsers.example_grammars import GRAMMAR_3_12, GRAMMAR_3_15
 
-# Example test for LL1Parser
 
-
-def test_base_parser_initialization():
-    parser = LL1Parser()
-    assert parser is not None
-
-
-def test_example_grammar_3_12():
-    p = LL1Parser()
-    p.add_rules(*GRAMMAR_3_12)
-    p.compute_first_follow_nullable()
+def test_example_grammar_3_12() -> None:
+    p = LL1Parser(*GRAMMAR_3_12)
     non_terminals = p.non_terminals
     assert non_terminals == set(["X", "Y", "Z"])
     assert p.nullables == set(["X", "Y"])
@@ -27,11 +18,8 @@ def test_example_grammar_3_12():
     assert len(p.follow["Z"]) == 0
 
 
-def test_ll_parser_on_grammar_3_15():
-    p = LL1Parser()
-    p.add_rules(*GRAMMAR_3_15)
-    p.compute_first_follow_nullable()
-
+def test_ll_parser_on_grammar_3_15() -> None:
+    p = LL1Parser(*GRAMMAR_3_15)
     # Table 3.16
 
     ## nullables

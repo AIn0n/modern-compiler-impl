@@ -10,9 +10,7 @@ def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule() -> 
         LRItem.from_rule_str("S -> ( L )", dot_pos=0),
         LRItem.from_rule_str("S -> x", dot_pos=0),
     ]
-
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_20)
+    p = LR0Parser(*GRAMMAR_3_20)
 
     given_items = p.closure(frozenset([LRItem.from_ruletype(p.get_start_rule())]))
 
@@ -24,17 +22,14 @@ def test_closure_given_grammar_3_20_should_return_valid_set_for_first_rule() -> 
 
 def test_goto_given_grammar_3_20_returns_valid_set() -> None:
     # same as above, figure 3.21, page 62
-    # fmt: off
     expected_items = [
         LRItem.from_rule_str("S -> ( L )", dot_pos=1),
         LRItem.from_rule_str("L -> S", dot_pos=0),
         LRItem.from_rule_str("L -> L , S", dot_pos=0),
         LRItem.from_rule_str("S -> ( L )", dot_pos=0),
-        LRItem.from_rule_str("S -> x", dot_pos=0)
+        LRItem.from_rule_str("S -> x", dot_pos=0),
     ]
-
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_20)
+    p = LR0Parser(*GRAMMAR_3_20)
 
     first_closure = p.closure(frozenset([LRItem.from_ruletype(p.get_start_rule())]))
     given_items = p.goto(first_closure, "(")
@@ -46,28 +41,20 @@ def test_goto_given_grammar_3_20_returns_valid_set() -> None:
 
 
 def test_lr0_for_grammar_3_20_returns_9_unique_states() -> None:
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_20)
-
-    p.compute_states_and_edges()
+    p = LR0Parser(*GRAMMAR_3_20)
 
     assert len(p.states) == 9
 
 
 def test_lr0_for_grammar_3_20_returns_12_state_edges() -> None:
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_20)
-
-    p.compute_states_and_edges()
+    p = LR0Parser(*GRAMMAR_3_20)
 
     assert len(p.edges) == 12
 
 
 def test_lr0_for_grammar_3_20_returns_valid_start_state() -> None:
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_20)
+    p = LR0Parser(*GRAMMAR_3_20)
 
-    p.compute_states_and_edges()
     # figure 3.21, page 62
     expected_start_state: LRState = frozenset(
         [
@@ -89,9 +76,7 @@ def test_lr0_for_grammar_3_20_returns_valid_start_state() -> None:
 def test_lr0_for_grammar_3_23_returns_duplicate_entry_in_parsing_table() -> None:
     # from figure 3.24, page 63 parsing table
     # for plus symbol, we have one double entry, two with one action and three empty
-
-    p = LR0Parser()
-    p.add_rules(*GRAMMAR_3_23)
+    p = LR0Parser(*GRAMMAR_3_23)
 
     table = p.parsing_table
 

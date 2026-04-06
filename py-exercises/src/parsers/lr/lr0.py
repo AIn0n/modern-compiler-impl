@@ -17,12 +17,16 @@ from parsers.lr.lr_types import (
 
 class LR0Parser(BaseParser):
     def __init__(
-        self, styling: Optional[ParserPrintStyler] = None, end_symbol: str = "$"
+        self,
+        *rules: str,
+        styling: Optional[ParserPrintStyler] = None,
+        end_symbol: str = "$",
     ):
-        super().__init__(styling=styling)
+        super().__init__(*rules, styling=styling)
         self.eol = end_symbol
         self.states: dict[int, LRState] = dict()
         self.edges: set[IndexedLREdge] = set()
+        self.compute_states_and_edges()
 
     @cached_property
     def indexed_rules(self) -> dict[int, RuleType]:
@@ -141,7 +145,6 @@ class LR0Parser(BaseParser):
         first dict is representing the states number, dict inside it stores
         symbols and actions mapping.
         """
-        self.compute_states_and_edges()
 
         rule_lookup = {r: i for i, r in self.indexed_rules.items()}
         t: LRParsingTable = self._init_parsing_table()
