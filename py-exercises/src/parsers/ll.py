@@ -1,5 +1,4 @@
 from collections import defaultdict
-from functools import cached_property
 
 from parsers.base_parser import BaseParser, ParserPrintStyler
 from parsers.example_grammars import GRAMMAR_3_12
@@ -15,7 +14,7 @@ class LL1Parser(BaseParser):
     def nullable_rhs(self, y: list[str]) -> bool:
         return (not len(y)) or all(map(lambda x: x in self.nullables, y))
 
-    @cached_property
+    @property
     def parsing_table(self):
         table = defaultdict(lambda: defaultdict(set))
 

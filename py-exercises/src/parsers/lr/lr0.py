@@ -138,7 +138,7 @@ class LR0Parser(BaseParser):
             action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
             t[edge.from_][edge.symbol].add(action(edge.to))
 
-    @cached_property
+    @property
     def parsing_table(self) -> LRParsingTable:
         """
         Returns parsing table for given grammar. Table is row-first, and the

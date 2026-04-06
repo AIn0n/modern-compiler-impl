@@ -1,11 +1,9 @@
-from functools import cached_property
-
 from parsers.lr.lr_types import LRParsingTable, LRAction
 from parsers.lr.lr0 import LR0Parser
 
 
 class SLRParser(LR0Parser):
-    @cached_property
+    @property
     def parsing_table(self) -> LRParsingTable:
         """
         Returns parsing table for given grammar. Table is row-first, and the

@@ -1,5 +1,3 @@
-from functools import cached_property
-
 from parsers.base_parser import ParserPrintStyler
 from parsers.lr.lr0 import LR0Parser
 from parsers.lr.lr_types import (
@@ -57,7 +55,7 @@ class LR1Parser(LR0Parser):
             ]
         )
 
-    @cached_property
+    @property
     def parsing_table(self) -> LRParsingTable:
         """
         Returns parsing table for given grammar. Table is row-first, and the
