@@ -9,6 +9,7 @@ from parsers.lr.lr_types import (
     LRState,
     are_states_equal_wo_lookahead,
     IndexedLREdge,
+    lr_state_to_str,
 )
 
 
@@ -80,7 +81,7 @@ class LR1Parser(LR0Parser):
         self._add_edges_to_parsing_table(t)
         return t
 
-    def to_lalr(self) -> LR1Parser:
+    def to_lalr(self, verbose: bool = False) -> LR1Parser:
         mapping: dict[int, int] = dict()
 
         len_states = len(self.states)
@@ -88,15 +89,18 @@ class LR1Parser(LR0Parser):
             for sidx in range(fidx + 1, len_states):
                 if are_states_equal_wo_lookahead(self.states[fidx], self.states[sidx]):
                     mapping[sidx] = fidx
+                    if verbose:
+                        print("-= merging states =-")
+                        print(f"state {sidx}")
+                        print(lr_state_to_str(self.states[sidx]))
+                        print(f"into state {fidx}")
+                        print(lr_state_to_str(self.states[fidx]))
 
         new_edges = set()
         for edge in self.edges:
-            if (new_idx := mapping.get(edge.to)) is not None:
-                new_edges.add(
-                    IndexedLREdge(from_=edge.from_, to=new_idx, symbol=edge.symbol)
-                )
-            else:
-                new_edges.add(edge)
+            new_from = mapping.get(edge.from_, edge.from_)
+            new_to = mapping.get(edge.to, edge.to)
+            new_edges.add(IndexedLREdge(from_=new_from, to=new_to, symbol=edge.symbol))
 
         self.edges = new_edges
         self.states = {k: v for k, v in self.states.items() if k not in mapping.keys()}
@@ -115,4 +119,4 @@ if __name__ == "__main__":
     ]
 
     parser = LR1Parser(*grammar_ex_3_7)
-    print(parser.to_tabulate())
+    parser.print_rules_and_states()

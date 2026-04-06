@@ -1,6 +1,7 @@
 from enum import StrEnum
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Mapping, Sequence
+from collections import defaultdict
 
 from parsers.base_parser import RuleType
 
@@ -67,13 +68,24 @@ class LRItem:
     def to_rule(self) -> RuleType:
         return self.rule
 
-    def __str__(self) -> str:
+    def _to_str_with_dot(self) -> str:
         pre_dot = self.rule.rhs[: self.dot_pos]
         post_dot = self.rule.rhs[self.dot_pos :]
-        res = f"{self.rule.lhs} -> " + " ".join([*pre_dot, ".", *post_dot])
-        if self.lookahead is not None:
-            res += f" ({self.lookahead})"
+        return f"{self.rule.lhs} -> " + " ".join([*pre_dot, ".", *post_dot])
 
+    def __str__(self) -> str:
+        return self.to_str_with_lookaheads([self.lookahead])
+
+    def to_str_with_lookaheads(
+        self, lookaheads: None | Sequence[None | str] = None
+    ) -> str:
+        res = self._to_str_with_dot()
+        if (
+            lookaheads is not None
+            and len(fla := [el for el in lookaheads if el is not None]) > 0
+        ):
+            lh_str = " ".join(sorted(fla))
+            res += f" ({lh_str})"
         return res
 
     @staticmethod
@@ -133,8 +145,19 @@ def lr_state_to_str(
     if prefix is None:
         prefix = ""
     res = ""
+
+    lookahead_map: dict[tuple[RuleType, int], list[str]] = defaultdict(list)
+    item_map: dict[tuple[RuleType, int], LRItem] = {}
+
     for item in state:
-        res += f"{prefix}{item}{linebreak}"
+        k = (item.rule, item.dot_pos)
+        item_map[k] = item
+        if item.lookahead is not None:
+            lookahead_map[k].append(item.lookahead)
+
+    for k in item_map.keys():
+        res += prefix + item_map[k].to_str_with_lookaheads(lookahead_map[k]) + linebreak
+
     return res
 
 

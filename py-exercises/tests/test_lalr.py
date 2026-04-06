@@ -70,7 +70,6 @@ def test_given_grammar_3_26_when_converted_to_lalr_return_valid_num_of_states() 
 
 def test_grammar_3_26_converted_to_lalr_returns_no_conflict() -> None:
     parser = LR1Parser(*GRAMMAR_3_26)
-    parser.parsing_table
     parser.to_lalr()
 
     counts: list[bool] = []
@@ -78,3 +77,13 @@ def test_grammar_3_26_converted_to_lalr_returns_no_conflict() -> None:
         counts.extend(map(lambda x: len(x) <= 1, row.values()))
 
     assert all(counts)
+
+
+def test_grammar_3_26_converted_to_lalr_returns_parsing_table_with_10_states() -> None:
+    parser = LR1Parser(*GRAMMAR_3_26)
+
+    assert len(parser.parsing_table.keys()) == 14
+
+    parser.to_lalr()
+
+    assert len(parser.parsing_table.keys()) == 10
