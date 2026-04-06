@@ -30,10 +30,7 @@ class SLRParser(LR0Parser):
                 if item.peek_after_dot() == self.eol:
                     t[idx][self.eol].add(LRAction.accept())
 
-        for edge in self.edges:
-            action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
-            t[edge.from_][edge.symbol].add(action(edge.to))
-
+        self._add_edges_to_parsing_table(t)
         return t
 
 

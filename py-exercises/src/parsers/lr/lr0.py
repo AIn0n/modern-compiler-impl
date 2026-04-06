@@ -123,6 +123,17 @@ class LR0Parser(BaseParser):
     def _init_parsing_table(self) -> LRParsingTable:
         return {i: {sym: set() for sym in self.symbols} for i in self.states.keys()}
 
+    def _add_edges_to_parsing_table(self, t: LRParsingTable) -> None:
+        """
+        Add edges to the parsing table.
+
+        Process looks literally the same in every type of parser, this function
+        is used to DRY up the code.
+        """
+        for edge in self.edges:
+            action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
+            t[edge.from_][edge.symbol].add(action(edge.to))
+
     @cached_property
     def parsing_table(self) -> LRParsingTable:
         """
@@ -143,10 +154,7 @@ class LR0Parser(BaseParser):
                 if item.peek_after_dot() == self.eol:
                     t[idx][self.eol].add(LRAction.accept())
 
-        for edge in self.edges:
-            action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
-            t[edge.from_][edge.symbol].add(action(edge.to))
-
+        self._add_edges_to_parsing_table(t)
         return t
 
     def _table_cell2str(self, c: set[LRAction]) -> str:

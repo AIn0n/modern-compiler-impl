@@ -74,10 +74,7 @@ class LR1Parser(LR0Parser):
                 if item.peek_after_dot() == self.eol:
                     t[idx][self.eol].add(LRAction.accept())
 
-        for edge in self.edges:
-            action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
-            t[edge.from_][edge.symbol].add(action(edge.to))
-
+        self._add_edges_to_parsing_table(t)
         return t
 
     def to_lalr(self) -> LR1Parser:
@@ -92,7 +89,9 @@ class LR1Parser(LR0Parser):
         new_edges = set()
         for edge in self.edges:
             if (new_idx := mapping.get(edge.to)) is not None:
-                new_edges.add(IndexedLREdge(from_=edge.from_, to=new_idx, symbol=edge.symbol))
+                new_edges.add(
+                    IndexedLREdge(from_=edge.from_, to=new_idx, symbol=edge.symbol)
+                )
             else:
                 new_edges.add(edge)
 
