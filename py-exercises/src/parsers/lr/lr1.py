@@ -55,8 +55,7 @@ class LR1Parser(LR0Parser):
             ]
         )
 
-    @property
-    def parsing_table(self) -> LRParsingTable:
+    def _compute_parsing_table(self) -> LRParsingTable:
         """
         Returns parsing table for given grammar. Table is row-first, and the
         first dict is representing the states number, dict inside it stores
@@ -102,7 +101,7 @@ class LR1Parser(LR0Parser):
 
         self.edges = new_edges
         self.states = {k: v for k, v in self.states.items() if k not in mapping.keys()}
-
+        self.parsing_table = self._compute_parsing_table()
         return self
 
 

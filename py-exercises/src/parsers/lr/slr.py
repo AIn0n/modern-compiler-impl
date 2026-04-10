@@ -3,8 +3,7 @@ from parsers.lr.lr0 import LR0Parser
 
 
 class SLRParser(LR0Parser):
-    @property
-    def parsing_table(self) -> LRParsingTable:
+    def _compute_parsing_table(self) -> LRParsingTable:
         """
         Returns parsing table for given grammar. Table is row-first, and the
         first dict is representing the states number, dict inside it stores

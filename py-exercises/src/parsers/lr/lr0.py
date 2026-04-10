@@ -27,6 +27,7 @@ class LR0Parser(BaseParser):
         self.states: dict[int, LRState] = dict()
         self.edges: set[IndexedLREdge] = set()
         self.compute_states_and_edges()
+        self.parsing_table = self._compute_parsing_table()
 
     @cached_property
     def indexed_rules(self) -> dict[int, RuleType]:
@@ -138,8 +139,7 @@ class LR0Parser(BaseParser):
             action = LRAction.shift if edge.symbol in self.terminals else LRAction.goto
             t[edge.from_][edge.symbol].add(action(edge.to))
 
-    @property
-    def parsing_table(self) -> LRParsingTable:
+    def _compute_parsing_table(self) -> LRParsingTable:
         """
         Returns parsing table for given grammar. Table is row-first, and the
         first dict is representing the states number, dict inside it stores
