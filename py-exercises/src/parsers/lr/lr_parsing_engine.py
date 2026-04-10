@@ -22,9 +22,11 @@ class LREngine:
         # seems to me like wild idea in terms of memory
         actions = self.table[self.curr_state()][sym]
         assert len(actions) == 1, f"{actions=}, {self.curr_state()=}, {sym=}"
-        return [*actions][0]
+        return next(iter(actions))
 
-    def parse(self, input_: list[str], for_each_stack: Callable | None = None) -> dict:
+    def parse(
+        self, input_: list[str], iteration_callback: Callable | None = None
+    ) -> dict:
         self.states = [self.start_state]
         stack: list[str | dict] = []
         # states is stack of the states. The first element on it is starting state.
@@ -33,8 +35,8 @@ class LREngine:
         while True:
             sym = input_[0]
             action = self.get_action(sym)
-            if for_each_stack is not None:
-                for_each_stack(stack)
+            if iteration_callback is not None:
+                iteration_callback(stack, self.states, sym, action)
 
             match action:
                 case LRAction(type_=LRActionEnum.ACCEPT):

@@ -98,7 +98,6 @@ class LR0Parser(BaseParser):
         # edges collection
         e: set[LREdge] = set()
         while True:
-            sizes = len(e) + len(t)
             new_e = set()
             new_t: set[LRState] = set()
             for i in t:
@@ -111,10 +110,12 @@ class LR0Parser(BaseParser):
                     j = self.goto(i, x)
                     new_t.add(j)
                     new_e.add(LREdge(from_=i, to=j, symbol=x))
+            old_t_len = len(t)
+            old_e_len = len(e)
             t.update(new_t)
             e.update(new_e)
 
-            if sizes == len(e) + len(t):
+            if old_e_len == len(e) and old_t_len == len(t):
                 break
 
         self.states = {idx: state for idx, state in enumerate(t)}
